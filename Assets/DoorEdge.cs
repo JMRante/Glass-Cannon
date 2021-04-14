@@ -10,6 +10,8 @@ public class DoorEdge
     private GameObject childDoorObject;
     private RoomNode childRoom;
 
+    private HashSet<string> roomsTried;
+
     public DoorEdge(GameObject parentDoorObject, RoomNode parentRoom)
     {
         this.parentDoorObject = parentDoorObject;
@@ -17,6 +19,8 @@ public class DoorEdge
 
         this.childDoorObject = null;
         this.childRoom = null;
+
+        roomsTried = new HashSet<string>();
     }
 
     public void ConnectChildRoom(GameObject childDoorObject, RoomNode childRoom)
@@ -59,5 +63,15 @@ public class DoorEdge
     {
         this.childDoorObject = null;
         this.childRoom = null;
+    }
+
+    public bool IsDoorValid()
+    {
+        return parentDoorObject != null && parentRoom != null;
+    }
+
+    public HashSet<string> GetRoomsTried()
+    {
+        return roomsTried;
     }
 }

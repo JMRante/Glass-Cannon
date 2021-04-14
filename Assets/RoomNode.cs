@@ -20,8 +20,7 @@ public class RoomNode
 
     public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode)
     {
-        DoorEdge myConnectingDoor = GetRandomUnconnectedChildDoor();
-        List<DoorEdge> theirConnectingDoorOptions = roomNode.GetChildDoors();
+        List<DoorEdge> theirConnectingDoorOptions = roomNode.childDoors;
 
         // Try each door on the room to connect to see if it will fit
         foreach (DoorEdge doorOption in theirConnectingDoorOptions)
@@ -87,7 +86,6 @@ public class RoomNode
         foreach (BoxCollider newCollider in newColliders)
         {
             Collider[] existingCollidersOverlapping = Physics.OverlapBox(newCollider.transform.position + newCollider.center, newCollider.size / 2, newCollider.transform.rotation, LayerMask.GetMask("RoomArea"), QueryTriggerInteraction.Collide);
-            //Debug.Log(roomNode.GetRoomObject().name + " " + existingCollidersOverlapping.Length);
 
             if (existingCollidersOverlapping.Length > 0)
             {
@@ -148,6 +146,11 @@ public class RoomNode
         return parentRoom;
     }
 
+    public DoorEdge GetParentDoor()
+    {
+        return parentDoor;
+    }
+
     public int GetDoorCount()
     {
         return childDoors.Count + (parentDoor != null ? 1 : 0);
@@ -157,11 +160,11 @@ public class RoomNode
     {
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
         dfsStack.Push(this);
-        Debug.Log("Destroying");
+
         while (dfsStack.Count > 0)
         {
             RoomNode currentRoom = dfsStack.Pop();
-            Debug.Log("Delete room " + currentRoom + ", count = " + dfsStack.Count);
+
             foreach (DoorEdge door in currentRoom.childDoors)
             {
                 if (door.HasChildRoom())
