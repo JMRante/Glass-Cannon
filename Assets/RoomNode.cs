@@ -4,97 +4,179 @@ using UnityEngine;
 
 public class RoomNode
 {
-    private List<RoomNode> connectedRooms;
-    private List<RoomDoor> doors;
-    private GameObject room;
+    private GameObject roomObject;
+    private RoomNode parentRoom;
+    private DoorEdge parentDoor;
+    private List<DoorEdge> childDoors;
 
-    public RoomNode(GameObject room)
+    public RoomNode(GameObject roomObject)
     {
-        this.room = room;
+        this.roomObject = roomObject;
+        this.parentRoom = null;
 
-        connectedRooms = new List<RoomNode>();
+        childDoors = new List<DoorEdge>();
         GetPrefabDoors();
     }
 
-    public void ConnectRoom(RoomNode roomNode)
+    public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode)
     {
-        if (connectedRooms.Count < doors.Count)
+        DoorEdge myConnectingDoor = GetRandomUnconnectedChildDoor();
+        List<DoorEdge> theirConnectingDoorOptions = roomNode.GetChildDoors();
+
+        // Try each door on the room to connect to see if it will fit
+        foreach (DoorEdge doorOption in theirConnectingDoorOptions)
         {
-            RoomDoor myConnectingDoor = GetRandomUnconnectedDoor();
-            RoomDoor theirConnectingDoor = roomNode.getRandomDoor();
+            // Connect their child room to our door
+            door.ConnectChildRoom(doorOption.GetParentDoorObject(), roomNode);
 
-            AdjustRoomToConnectDoors(myConnectingDoor, theirConnectingDoor);
+            AdjustRoomToConnectDoors(door);
 
-            myConnectingDoor.ConnectDoor(theirConnectingDoor);
+            // If adjusted room does not fit, reject it, undo its promotion, and try another
+            if (!DoesRoomFit(roomNode))
+            {
+                door.DisconnectChildRoom();
+                continue;
+            }
+            else
+            {
+                // Promote child door of ours to parent door of theirs
+                roomNode.parentRoom = this;
+                roomNode.parentDoor = door;
+                roomNode.childDoors.Remove(doorOption);
 
-            connectedRooms.Add(roomNode);
-            roomNode.connectedRooms.Add(this);
+                return null;
+            }
         }
+
+        return roomNode;
     }
 
-    private void AdjustRoomToConnectDoors(RoomDoor steadyDoor, RoomDoor transformingDoor)
+    private void AdjustRoomToConnectDoors(DoorEdge door)
     {
-        Transform steadyRoomTransform = steadyDoor.GetParentRoom().GetRoom().transform;
-        Transform transformingRoomTransform = transformingDoor.GetParentRoom().GetRoom().transform;
+        Transform steadyRoomTransform = door.GetParentRoom().GetRoomObject().transform;
+        Transform transformingRoomTransform = door.GetChildRoom().GetRoomObject().transform;
 
         // Get rotation from next door to previous door inverted and apply rotation to entire room.
-        float steadyDoorZRotation = steadyDoor.GetDoor().transform.rotation.eulerAngles.y;
-        float transformingDoorZRotation = transformingDoor.GetDoor().transform.eulerAngles.y;
+        float steadyDoorZRotation = door.GetParentDoorObject().transform.rotation.eulerAngles.y;
+        float transformingDoorZRotation = door.GetChildDoorObject().transform.eulerAngles.y;
         float rotation = Mathf.DeltaAngle(transformingDoorZRotation, steadyDoorZRotation + 180);
 
         transformingRoomTransform.rotation = Quaternion.Euler(0f, rotation, 0f);
 
         // Move transform of room to previous door transform.
-        transformingRoomTransform.position = steadyDoor.GetDoor().transform.position;
+        transformingRoomTransform.position = door.GetParentDoorObject().transform.position;
 
         // Subtract new door position from room transform.
-        Vector3 transformingRoomDoorTranslation = transformingDoor.GetDoor().transform.position - transformingRoomTransform.position;
+        Vector3 transformingRoomDoorTranslation = door.GetChildDoorObject().transform.position - transformingRoomTransform.position;
 
         // Translate room by subtraction vector.
         transformingRoomTransform.position -= transformingRoomDoorTranslation;
     }
 
-    public GameObject GetRoom()
+    public bool DoesRoomFit(RoomNode roomNode)
     {
-        return room;
+        bool doesRoomFit = true;
+
+        BoxCollider[] newColliders = roomNode.GetRoomObject().GetComponentsInChildren<BoxCollider>();
+
+        foreach (BoxCollider newCollider in newColliders)
+        {
+            newCollider.gameObject.SetActive(false);
+        }
+
+        foreach (BoxCollider newCollider in newColliders)
+        {
+            Collider[] existingCollidersOverlapping = Physics.OverlapBox(newCollider.transform.position + newCollider.center, newCollider.size / 2, newCollider.transform.rotation, LayerMask.GetMask("RoomArea"), QueryTriggerInteraction.Collide);
+            //Debug.Log(roomNode.GetRoomObject().name + " " + existingCollidersOverlapping.Length);
+
+            if (existingCollidersOverlapping.Length > 0)
+            {
+                doesRoomFit = false;
+                break;
+            }
+        }
+
+        foreach (BoxCollider newCollider in newColliders)
+        {
+            newCollider.gameObject.SetActive(true);
+        }
+
+        return doesRoomFit;
+    }
+
+    public GameObject GetRoomObject()
+    {
+        return roomObject;
     }
 
     private void GetPrefabDoors()
     {
-        doors = new List<RoomDoor>();
+        childDoors = new List<DoorEdge>();
 
-        foreach (Transform child in room.transform)
+        foreach (Transform child in roomObject.transform)
         {
             if (child.gameObject.tag.Equals("DoorNode"))
             {
-                doors.Add(new RoomDoor(child.gameObject, this));
+                childDoors.Add(new DoorEdge(child.gameObject, this));
             }
         }
     }
 
-    public List<RoomDoor> GetDoors()
+    public List<DoorEdge> GetChildDoors()
     {
-        return doors;
+        return childDoors;
     }
 
-    public RoomDoor getRandomDoor()
+    public DoorEdge GetRandomChildDoor()
     {
-        return doors[Random.Range(0, doors.Count)];
+        return childDoors[Random.Range(0, childDoors.Count)];
     }
 
-    public RoomDoor GetRandomUnconnectedDoor()
+    public DoorEdge GetRandomUnconnectedChildDoor()
     {
-        List<RoomDoor> unconnectedDoors = doors.FindAll(x => x.GetConnectedDoor() == null);
+        List<DoorEdge> unconnectedDoors = childDoors.FindAll(x => !x.HasChildRoom());
         return unconnectedDoors[Random.Range(0, unconnectedDoors.Count)];
     }
 
-    public List<RoomDoor> GetUnconnectedDoors()
+    public List<DoorEdge> GetUnconnectedChildDoors()
     {
-        return doors.FindAll(x => x.GetConnectedDoor() == null);
+        return childDoors.FindAll(x => !x.HasChildRoom());
+    }
+
+    public RoomNode GetParentRoom()
+    {
+        return parentRoom;
     }
 
     public int GetDoorCount()
     {
-        return doors.Count;
+        return childDoors.Count + (parentDoor != null ? 1 : 0);
+    }
+
+    public void DestroyRoom()
+    {
+        Stack<RoomNode> dfsStack = new Stack<RoomNode>();
+        dfsStack.Push(this);
+        Debug.Log("Destroying");
+        while (dfsStack.Count > 0)
+        {
+            RoomNode currentRoom = dfsStack.Pop();
+            Debug.Log("Delete room " + currentRoom + ", count = " + dfsStack.Count);
+            foreach (DoorEdge door in currentRoom.childDoors)
+            {
+                if (door.HasChildRoom())
+                {
+                    dfsStack.Push(door.GetChildRoom());
+                }
+            }
+
+            if (currentRoom.parentDoor != null)
+            {
+                currentRoom.parentDoor.DisconnectChildRoom();
+            }
+
+            currentRoom.roomObject.SetActive(false);
+            Object.Destroy(currentRoom.roomObject);
+        }
     }
 }
