@@ -1,34 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class StageBuilder : MonoBehaviour
 {
-    private GameObject[] roomPrefabs;
-    private GameObject[] room1DoorPrefabs;
-    private GameObject[] room2DoorPrefabs;
-    private GameObject[] room3DoorPrefabs;
-    private HashSet<string> roomOptions;
+    private HashSet<RoomPrefab> roomOptions;
 
     private RoomNode rootRoom;
     private Stack<RoomNode> dfsStack;
 
     void Start()
     {
-        room1DoorPrefabs = Resources.LoadAll<GameObject>("1_door");
-        room2DoorPrefabs = Resources.LoadAll<GameObject>("2_door");
-        room3DoorPrefabs = Resources.LoadAll<GameObject>("3_door");
-        
-        roomOptions = new HashSet<string>();
+        GameObject[] roomPrefabs = Resources.LoadAll<GameObject>("rooms");
 
-        foreach (GameObject roomPrefab in room1DoorPrefabs)
-            roomOptions.Add(roomPrefab.name);
+        roomOptions = new HashSet<RoomPrefab>();
 
-        foreach (GameObject roomPrefab in room2DoorPrefabs)
-            roomOptions.Add(roomPrefab.name);
-
-        foreach (GameObject roomPrefab in room3DoorPrefabs)
-            roomOptions.Add(roomPrefab.name);     
+        foreach (GameObject roomPrefab in roomPrefabs)
+            roomOptions.Add(new RoomPrefab(roomPrefab));
 
         GenerateStage();
 
@@ -49,10 +38,8 @@ public class StageBuilder : MonoBehaviour
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
 
         // Place a starting room (any qualifying end room) at the center of the scene.
-        GameObject rootRoomPrefab = room1DoorPrefabs[Random.Range(0, room1DoorPrefabs.Length)];
-        GameObject rootRoomInstance = Instantiate(rootRoomPrefab, new Vector3(0, 0, 0), Quaternion.identity, transform);
-        rootRoomInstance.name = rootRoomInstance.name.Replace("(Clone)", "");
-        rootRoom = new RoomNode(rootRoomInstance);
+        RoomPrefab rootRoomChoice = ChooseRoomByDoorCount(new HashSet<RoomPrefab>(), 1);
+        rootRoom = CreateRoom(rootRoomChoice);
 
         dfsStack.Push(rootRoom);
 
@@ -65,19 +52,21 @@ public class StageBuilder : MonoBehaviour
 
             foreach (DoorEdge door in currentRoom.GetUnconnectedChildDoors())
             {
+                RoomPrefab newRoomPrefab = null;
                 RoomNode newRoom = null;
                 RoomNode failedRoom = null;
-                HashSet<string> roomsTried = door.GetRoomsTried();
+                HashSet<RoomPrefab> roomsTried = door.GetRoomsTried();
 
                 while (roomsTried.Count < roomOptions.Count)
                 {
-                    newRoom = ChooseRoom(dfsStack.Count, roomsTried);
+                    newRoomPrefab = ChooseRoom(dfsStack.Count, roomsTried);
+                    newRoom = CreateRoom(newRoomPrefab);
                     failedRoom = currentRoom.ConnectRoom(door, newRoom);
 
                     // Unable to fit new room by any of its doors
                     if (failedRoom != null)
                     {
-                        roomsTried.Add(failedRoom.GetRoomObject().name);
+                        roomsTried.Add(newRoomPrefab);
                         failedRoom.DestroyRoom();
                     }
                     else
@@ -95,7 +84,8 @@ public class StageBuilder : MonoBehaviour
                     }
 
                     dfsStack.Push(currentRoom.GetParentRoom());
-                    currentRoom.GetParentDoor().GetRoomsTried().Add(currentRoom.GetRoomObject().name);
+                    RoomPrefab currentRoomPrefab = ChooseRoomByName(currentRoom.GetRoomObject().name);
+                    currentRoom.GetParentDoor().GetRoomsTried().Add(currentRoomPrefab);
                     currentRoom.DestroyRoom();
                     break;
                 }
@@ -117,42 +107,44 @@ public class StageBuilder : MonoBehaviour
         }
     }
 
-    private RoomNode ChooseRoom(int depth, HashSet<string> roomsTried)
+    private RoomPrefab ChooseRoomByName(string roomName)
     {
-        GameObject roomPrefab;
+        return roomOptions.ToList().Find(x => x.ToString() == roomName);
+    }
 
-        do
+    private RoomPrefab ChooseRoomByDoorCount(HashSet<RoomPrefab> roomsTried, int doorCount)
+    {
+        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetDoorCount() == doorCount);
+
+        if (validRooms.Count > 0)
         {
-            if (depth > 30)
-            {
-                roomPrefab = room1DoorPrefabs[Random.Range(0, room1DoorPrefabs.Length)];
-            }
-            else
-            {
-                // Choose number of doors
-                int randRoomNumber = Random.Range(1, 20);
-
-                if (randRoomNumber == 1)
-                {
-                    roomPrefab = room1DoorPrefabs[Random.Range(0, room1DoorPrefabs.Length)];
-                }
-                else if (randRoomNumber >= 2 && randRoomNumber < 15)
-                {
-                    roomPrefab = room2DoorPrefabs[Random.Range(0, room2DoorPrefabs.Length)];
-                }
-                else if (randRoomNumber >= 15 && randRoomNumber < 19)
-                {
-                    roomPrefab = room3DoorPrefabs[Random.Range(0, room3DoorPrefabs.Length)];
-                }
-                else
-                {
-                    roomPrefab = room1DoorPrefabs[Random.Range(0, room1DoorPrefabs.Length)];                    
-                }
-            }
+            RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
+            return chosenRoom;
         }
-        while (roomsTried.Contains(roomPrefab.name) && roomsTried.Count < roomOptions.Count);
+        else
+        {
+            return null;
+        }
+    }
 
-        GameObject room = Instantiate(roomPrefab, new Vector3(0, 0, 0), Quaternion.identity, transform);
+    private RoomPrefab ChooseRoom(int depth, HashSet<RoomPrefab> roomsTried)
+    {
+        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList();
+
+        if (validRooms.Count > 0)
+        {
+            RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
+            return chosenRoom;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private RoomNode CreateRoom(RoomPrefab roomPrefab)
+    {
+        GameObject room = Instantiate(roomPrefab.GetPrefab(), new Vector3(0, 0, 0), Quaternion.identity, transform);
         room.name = room.name.Replace("(Clone)", "");
         return new RoomNode(room);
     }
