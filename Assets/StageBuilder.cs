@@ -129,6 +129,11 @@ public class StageBuilder : MonoBehaviour
 
     private RoomPrefab ChooseRoom(int depth, HashSet<RoomPrefab> roomsTried)
     {
+        if (depth >= 12)
+        {
+            return ChooseRoomByDoorCount(roomsTried, 1);
+        }
+
         List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList();
 
         if (validRooms.Count > 0)
