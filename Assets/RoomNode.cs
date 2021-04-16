@@ -58,6 +58,7 @@ public class RoomNode
         // Get rotation from next door to previous door inverted and apply rotation to entire room.
         float steadyDoorZRotation = door.GetParentDoorObject().transform.rotation.eulerAngles.y;
         float transformingDoorZRotation = door.GetChildDoorObject().transform.eulerAngles.y;
+
         float rotation = Mathf.DeltaAngle(transformingDoorZRotation, steadyDoorZRotation + 180);
 
         transformingRoomTransform.rotation = Quaternion.Euler(0f, rotation, 0f);
