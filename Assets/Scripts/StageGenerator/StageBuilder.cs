@@ -26,7 +26,7 @@ public class StageBuilder : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.LeftControl))
+        if (Input.GetKeyDown(KeyCode.G))
         {
             ClearRooms();
             GenerateStage();
