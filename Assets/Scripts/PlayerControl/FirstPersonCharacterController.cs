@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class FirstPersonCharacterController : MonoBehaviour
 {
-    public float maxSpeed = 25f;
+    public float maxSpeed = 15f;
     public float acceleration = 0.2f;
-    public float friction = 0.2f;
+    public float friction = 0.1f;
 
     private Vector3 velocity;
 
