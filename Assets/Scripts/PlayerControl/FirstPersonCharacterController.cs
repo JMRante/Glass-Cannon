@@ -5,8 +5,9 @@ using UnityEngine;
 public class FirstPersonCharacterController : MonoBehaviour
 {
     public float maxSpeed = 15f;
-    public float acceleration = 0.2f;
-    public float friction = 0.1f;
+    public float acceleration = 90f;
+    public float friction = 90f;
+    public float airAcceleration = 15f;
     
     private float gravity = -9.81f;
 
@@ -41,10 +42,9 @@ public class FirstPersonCharacterController : MonoBehaviour
         }
         else
         {
-            force = Vector3.Normalize(((transform.right * xInput) + (transform.forward * yInput))) * acceleration;
+            force = Vector3.Normalize(((transform.right * xInput) + (transform.forward * yInput))) * (characterController.isGrounded ? acceleration : airAcceleration);
         }
 
-        
         moveVelocity += force * Time.deltaTime;
         moveVelocity = Vector3.ClampMagnitude(moveVelocity, maxSpeed);
 

@@ -61,6 +61,12 @@ public class DoorEdge
 
     public void DisconnectChildRoom()
     {
+        if (this.childRoom != null)
+        {
+            this.childRoom.GetRoomObject().transform.position = Vector3.zero;
+            this.childRoom.GetRoomObject().transform.rotation = Quaternion.identity;
+        }
+
         this.childDoorObject = null;
         this.childRoom = null;
     }

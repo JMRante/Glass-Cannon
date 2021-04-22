@@ -8,6 +8,7 @@ public class RoomNode
     private RoomNode parentRoom;
     private DoorEdge parentDoor;
     private List<DoorEdge> childDoors;
+    private List<RoomSlot> slots;
 
     public RoomNode(GameObject roomObject)
     {
@@ -15,7 +16,9 @@ public class RoomNode
         this.parentRoom = null;
 
         childDoors = new List<DoorEdge>();
-        GetPrefabDoors();
+
+        AddPrefabDoors();
+        AddSlots();
     }
 
     public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode)
@@ -56,10 +59,12 @@ public class RoomNode
         Transform transformingRoomTransform = door.GetChildRoom().GetRoomObject().transform;
 
         // Get rotation from next door to previous door inverted and apply rotation to entire room.
-        float steadyDoorZRotation = door.GetParentDoorObject().transform.rotation.eulerAngles.y;
+        float steadyDoorZRotation = door.GetParentDoorObject().transform.eulerAngles.y;
         float transformingDoorZRotation = door.GetChildDoorObject().transform.eulerAngles.y;
+        
+        float matchSteadyDoorZRotation = steadyDoorZRotation + 180f;
 
-        float rotation = Mathf.DeltaAngle(transformingDoorZRotation, steadyDoorZRotation + 180);
+        float rotation = Mathf.DeltaAngle(transformingDoorZRotation, matchSteadyDoorZRotation);
 
         transformingRoomTransform.rotation = Quaternion.Euler(0f, rotation, 0f);
 
@@ -108,7 +113,7 @@ public class RoomNode
         return roomObject;
     }
 
-    private void GetPrefabDoors()
+    private void AddPrefabDoors()
     {
         childDoors = new List<DoorEdge>();
 
@@ -119,6 +124,24 @@ public class RoomNode
                 childDoors.Add(new DoorEdge(child.gameObject, this));
             }
         }
+    }
+
+    private void AddSlots()
+    {
+        slots = new List<RoomSlot>();
+
+        foreach (Transform child in roomObject.transform)
+        {
+            if (child.gameObject.tag.Equals("Slot"))
+            {
+                slots.Add(child.GetComponent<RoomSlot>());
+            }
+        }
+    }
+    
+    public List<RoomSlot> GetSlots()
+    {
+        return slots;
     }
 
     public List<DoorEdge> GetChildDoors()

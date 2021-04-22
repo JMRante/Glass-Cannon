@@ -8,7 +8,10 @@ public class StageBuilder : MonoBehaviour
     private HashSet<RoomPrefab> roomOptions;
 
     private RoomNode rootRoom;
-    private Stack<RoomNode> dfsStack;
+
+    private int roomCount = 0;
+
+    private GameObject doorPrefab;
 
     void Start()
     {
@@ -19,9 +22,9 @@ public class StageBuilder : MonoBehaviour
         foreach (GameObject roomPrefab in roomPrefabs)
             roomOptions.Add(new RoomPrefab(roomPrefab));
 
-        GenerateStage();
+        doorPrefab = Resources.Load<GameObject>("Elements/test_door");
 
-        dfsStack = new Stack<RoomNode>();
+        GenerateStage();
     }
 
     void Update()
@@ -36,6 +39,8 @@ public class StageBuilder : MonoBehaviour
     private void GenerateStage()
     {
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
+
+        roomCount = 0;
 
         // Place a starting room (any qualifying end room) at the center of the scene.
         RoomPrefab rootRoomChoice = ChooseRoomByDoorCount(new HashSet<RoomPrefab>(), 1);
@@ -60,23 +65,32 @@ public class StageBuilder : MonoBehaviour
                 while (roomsTried.Count < roomOptions.Count)
                 {
                     newRoomPrefab = ChooseRoom(dfsStack.Count, roomsTried);
-                    newRoom = CreateRoom(newRoomPrefab);
-                    failedRoom = currentRoom.ConnectRoom(door, newRoom);
 
-                    // Unable to fit new room by any of its doors
-                    if (failedRoom != null)
+                    if (newRoomPrefab == null)
                     {
-                        roomsTried.Add(newRoomPrefab);
-                        failedRoom.DestroyRoom();
+                        newRoom = null;
+                        break;
                     }
                     else
                     {
-                        break;
+                        newRoom = CreateRoom(newRoomPrefab);
+                        failedRoom = currentRoom.ConnectRoom(door, newRoom);
+
+                        // Unable to fit new room by any of its doors
+                        if (failedRoom != null)
+                        {
+                            roomsTried.Add(newRoomPrefab);
+                            failedRoom.DestroyRoom();
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
 
                 // If no room will work for this door, we need to choose a new room higher up the stack
-                if (failedRoom != null)
+                if (failedRoom != null || newRoom == null)
                 {
                     for (int i = 0; i < roomsPutOnStack; i++)
                     {
@@ -93,8 +107,14 @@ public class StageBuilder : MonoBehaviour
                 {
                     dfsStack.Push(newRoom);
                     roomsPutOnStack++;
+
+                    // Add door
+                    //Quaternion.Euler(0f, door.GetParentDoorObject().transform.rotation.y + 90, 0f)
+                    Instantiate(doorPrefab, door.GetParentDoorObject().transform.position, door.GetParentDoorObject().transform.rotation, newRoom.GetRoomObject().transform);
                 }
             }
+
+            FillSlots(currentRoom);
         }
     }
 
@@ -150,7 +170,27 @@ public class StageBuilder : MonoBehaviour
     private RoomNode CreateRoom(RoomPrefab roomPrefab)
     {
         GameObject room = Instantiate(roomPrefab.GetPrefab(), new Vector3(0, 0, 0), Quaternion.identity, transform);
-        room.name = room.name.Replace("(Clone)", "");
+        room.name = room.name.Replace("(Clone)", "_" + roomCount);
+        roomCount += 1;
         return new RoomNode(room);
+    }
+
+    private void FillSlots(RoomNode room)
+    {
+        foreach (RoomSlot slot in room.GetSlots())
+        {
+            GameObject slottedPrefab = null;
+
+            if (room.GetParentRoom() == null)
+            {
+                slottedPrefab = slot.slottedPrefabs.Find(x => x.name == "player");
+            }
+
+            if (slottedPrefab != null)
+            {
+                GameObject slottedObject = Instantiate(slottedPrefab, slot.gameObject.transform.position, Quaternion.identity, transform);
+                slottedObject.name = slottedObject.name.Replace("(Clone)", "");
+            }
+        }
     }
 }

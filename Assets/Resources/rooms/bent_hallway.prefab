@@ -155,13 +155,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1741007189232836854}
-  m_LocalRotation: {x: 0.6988246, y: 0.6988245, z: 0.10790849, w: 0.1079085}
+  m_LocalRotation: {x: 0, y: 0.98884755, z: 0, w: 0.14893135}
   m_LocalPosition: {x: 17.62137, y: 2, z: -26.5311}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1763556166883809331}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 162.87, z: 0}
 --- !u!1 &2013146564053884893
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,13 +410,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2461328905755026246}
-  m_LocalRotation: {x: 0.50000006, y: 0.50000006, z: -0.49999997, w: -0.49999994}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -24, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1763556166883809331}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!1 &2757474135994544216
 GameObject:
   m_ObjectHideFlags: 0
@@ -521,6 +521,7 @@ GameObject:
   - component: {fileID: 7734954415636423965}
   - component: {fileID: 4997947485759838760}
   - component: {fileID: 274878213880582767}
+  - component: {fileID: 1372818004138806681}
   m_Layer: 0
   m_Name: bent_hallway
   m_TagString: Untagged
@@ -591,3 +592,17 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &1372818004138806681
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5101896834569309586}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 1762943662990951887, guid: 012b17b17f3766d42a54a2cf4bd39a02, type: 3}

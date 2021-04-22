@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: 5448870944773844224}
   - component: {fileID: 1345203716417036027}
   - component: {fileID: 7434871110174964390}
+  - component: {fileID: 6446109025822567250}
   m_Layer: 0
   m_Name: figure_eight_hallway
   m_TagString: Untagged
@@ -218,6 +219,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &6446109025822567250
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3030938521185312227}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5624662212096052051, guid: 98048ce95b4b96f459b5253e275c3517, type: 3}
 --- !u!1 &3075320785572335378
 GameObject:
   m_ObjectHideFlags: 0
