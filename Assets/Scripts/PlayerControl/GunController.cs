@@ -27,7 +27,7 @@ public class GunController : MonoBehaviour
             Vector3 rayOrigin = playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
             RaycastHit hit;
 
-            if (Physics.Raycast(rayOrigin, playerCamera.transform.forward, out hit, 500f))
+            if (Physics.Raycast(rayOrigin, playerCamera.transform.forward, out hit, 1000f, LayerMask.GetMask("Default")))
             {
                 if (hit.transform.tag.Equals("Shootable"))
                 {

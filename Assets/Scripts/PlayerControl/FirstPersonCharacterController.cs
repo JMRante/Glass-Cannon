@@ -5,53 +5,52 @@ using UnityEngine;
 public class FirstPersonCharacterController : MonoBehaviour
 {
     public float maxSpeed = 15f;
-    public float acceleration = 90f;
-    public float friction = 90f;
+    public float acceleration = 75f;
+    public float friction = 75f;
     public float airAcceleration = 15f;
     
     private float gravity = -9.81f;
+    
+    private float moveSpeed = 0f;
+    private float fallSpeed = 0f;
 
-    private Vector3 velocity;
-    private Vector3 moveVelocity;
+    private Vector3 direction;
 
     private CharacterController characterController;
 
     void Start()
     {
-        velocity = Vector3.zero;
-        moveVelocity = Vector3.zero;
+        direction = Vector3.zero;
 
         characterController = GetComponent<CharacterController>();
     }
 
     void Update()
     {
-        if (characterController.isGrounded && velocity.y < 0)
+        if (characterController.isGrounded && fallSpeed < 0)
         {
-            velocity.y = 0f;
+            fallSpeed = 0f;
         }
 
         float xInput = Input.GetAxis("Horizontal");
         float yInput = Input.GetAxis("Vertical");
 
-        Vector3 force = Vector3.zero;
-
-        if (Mathf.Approximately(xInput, 0) && Mathf.Approximately(yInput, 0))
+        if (Mathf.Approximately(xInput, 0) && Mathf.Approximately(yInput, 0) && moveSpeed > 0f)
         {
-            force = -moveVelocity.normalized * friction;
+            moveSpeed -= friction * Time.deltaTime;
         }
         else
         {
-            force = Vector3.Normalize(((transform.right * xInput) + (transform.forward * yInput))) * (characterController.isGrounded ? acceleration : airAcceleration);
+            moveSpeed += acceleration * Time.deltaTime;
+            direction = Vector3.Normalize((transform.right * xInput) + (transform.forward * yInput));
         }
 
-        moveVelocity += force * Time.deltaTime;
-        moveVelocity = Vector3.ClampMagnitude(moveVelocity, maxSpeed);
+        moveSpeed = Mathf.Clamp(moveSpeed, 0f, 15f);
 
-        characterController.Move(moveVelocity * Time.deltaTime);
+        characterController.Move(direction * moveSpeed * Time.deltaTime);
 
-        velocity.y += gravity * Time.deltaTime;
+        fallSpeed += gravity * Time.deltaTime;
 
-        characterController.Move(velocity * Time.deltaTime);
+        characterController.Move(Vector3.up * fallSpeed * Time.deltaTime);
     }
 }
