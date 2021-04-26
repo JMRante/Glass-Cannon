@@ -1,3 +1,4 @@
+using Tuple = System.Tuple;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ public class StageBuilder : MonoBehaviour
 
     private GameObject doorPrefab;
 
+    private StructureConfig config;
+
     void Start()
     {
         GameObject[] roomPrefabs = Resources.LoadAll<GameObject>("rooms");
@@ -24,6 +27,8 @@ public class StageBuilder : MonoBehaviour
 
         doorPrefab = Resources.Load<GameObject>("Elements/test_door");
 
+        config = new DefaultStructureConfig();
+
         GenerateStage();
     }
 
@@ -31,12 +36,44 @@ public class StageBuilder : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.G))
         {
-            ClearRooms();
             GenerateStage();
         }
     }
-
+    
     private void GenerateStage()
+    {
+        ClearRooms();
+        StructureNode structure = GenerateStructure();
+        GenerateRooms(structure);
+    }
+    
+    private StructureNode GenerateStructure()
+    {
+        Stack<StructureNode> dfsStack = new Stack<StructureNode>();
+
+        StructureNode parentNode = new StructureNode(StructureType.start, config);
+        dfsStack.Push(parentNode);
+
+        while (dfsStack.Count > 0)
+        {
+            StructureNode currentNode = dfsStack.Pop();
+
+            IntRange childRange = config.GetChildRange(currentNode.GetStructureType());
+
+            int childCount = UnityEngine.Random.Range(childRange.GetMin(), childRange.GetMax());
+
+            for (int i = 0; i < childCount; i++)
+            {
+                StructureNode childNode = parentNode.GenerateChild();
+                parentNode.AddChild(childNode);
+                dfsStack.Push(childNode);
+            }
+        }
+
+        return parentNode;
+    }
+
+    private void GenerateRooms(StructureNode structure)
     {
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
 
