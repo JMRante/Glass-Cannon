@@ -68,7 +68,7 @@ MonoBehaviour:
   maxSpeed: 15
   acceleration: 75
   friction: 75
-  airAcceleration: 15
+  airAcceleration: 2
 --- !u!114 &3203011900968501549
 MonoBehaviour:
   m_ObjectHideFlags: 0

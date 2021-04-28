@@ -7,7 +7,6 @@ public class FirstPersonCharacterController : MonoBehaviour
     public float maxSpeed = 15f;
     public float acceleration = 75f;
     public float friction = 75f;
-    public float airAcceleration = 15f;
     
     private float gravity = -9.81f;
     
@@ -44,13 +43,13 @@ public class FirstPersonCharacterController : MonoBehaviour
             moveSpeed += acceleration * Time.deltaTime;
             direction = Vector3.Normalize((transform.right * xInput) + (transform.forward * yInput));
         }
-
-        moveSpeed = Mathf.Clamp(moveSpeed, 0f, 15f);
+        
+        moveSpeed = Mathf.Clamp(moveSpeed, 0f, maxSpeed);
 
         characterController.Move(direction * moveSpeed * Time.deltaTime);
 
         fallSpeed += gravity * Time.deltaTime;
 
-        characterController.Move(Vector3.up * fallSpeed * Time.deltaTime);
+        characterController.Move(Vector3.up * fallSpeed * 2f * Time.deltaTime);
     }
 }
