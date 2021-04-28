@@ -77,7 +77,7 @@ public class StageBuilder : MonoBehaviour
                     childNode = new StructureNode(StructureType.end, config, currentNode);
                 }
 
-                parentNode.AddChild(childNode);
+                currentNode.AddChild(childNode);
                 childNode.SetChildCount();
                 roomCount += childNode.GetChildCount();
 
@@ -115,6 +115,7 @@ public class StageBuilder : MonoBehaviour
             for (int i = 0; i < unconnectedChildDoors.Count; i++)
             {
                 DoorEdge door = unconnectedChildDoors[i];
+                StructureNode childStructureNode = nonInstantiatedChildren[i];
 
                 RoomPrefab newRoomPrefab = null;
                 RoomNode newRoom = null;
@@ -123,7 +124,7 @@ public class StageBuilder : MonoBehaviour
 
                 while (roomsTried.Count < roomOptions.Count)
                 {
-                    newRoomPrefab = ChooseRoom(dfsStack.Count, roomsTried, nonInstantiatedChildren[i]);
+                    newRoomPrefab = ChooseRoom(dfsStack.Count, roomsTried, childStructureNode);
 
                     if (newRoomPrefab == null)
                     {
@@ -156,6 +157,7 @@ public class StageBuilder : MonoBehaviour
                         dfsStack.Pop();
                     }
 
+                    childStructureNode.SetRoomNode(null);
                     currentNode.SetRoomNode(null);
                     dfsStack.Push(currentNode.GetParent());
 
@@ -166,8 +168,8 @@ public class StageBuilder : MonoBehaviour
                 }
                 else
                 {
-                    currentNode.SetRoomNode(newRoom);
-                    dfsStack.Push(currentNode);
+                    childStructureNode.SetRoomNode(newRoom);
+                    dfsStack.Push(childStructureNode);
                     roomsPutOnStack++;
 
                     // Add door
