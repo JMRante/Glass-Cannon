@@ -8,6 +8,8 @@ public class StructureConfig
     private Dictionary<StructureType, RoomType> roomMappings;
     private Dictionary<StructureType, IntRange> childRange;
 
+    private int roomLimit = 2;
+
     public StructureConfig()
     {
         weightConfig = new Dictionary<StructureType, StructureWeightList>();
@@ -17,6 +19,11 @@ public class StructureConfig
 
     public void AddWeight(StructureType structureType, StructureType childStructureType, int weight)
     {
+        if (!weightConfig.ContainsKey(structureType))
+        {
+            weightConfig[structureType] = new StructureWeightList();
+        }
+
         weightConfig[structureType].AddWeight(childStructureType, weight);
     }
 
@@ -43,5 +50,15 @@ public class StructureConfig
     public IntRange GetChildRange(StructureType structureType)
     {
         return childRange[structureType];
+    }
+
+    public void SetRoomLimit(int roomLimit)
+    {
+        this.roomLimit = roomLimit;
+    }
+
+    public int GetRoomLimit()
+    {
+        return roomLimit;
     }
 }

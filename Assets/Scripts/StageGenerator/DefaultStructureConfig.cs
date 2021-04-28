@@ -9,9 +9,9 @@ public class DefaultStructureConfig : StructureConfig
         AddWeight(StructureType.start, StructureType.pathway, 5);
         AddWeight(StructureType.start, StructureType.hub, 1);
 
-        AddWeight(StructureType.pathway, StructureType.pathway, 3);
-        AddWeight(StructureType.pathway, StructureType.end, 2);
-        AddWeight(StructureType.pathway, StructureType.hub, 2);
+        AddWeight(StructureType.pathway, StructureType.pathway, 2);
+        AddWeight(StructureType.pathway, StructureType.end, 10);
+        AddWeight(StructureType.pathway, StructureType.hub, 1);
 
         AddWeight(StructureType.hub, StructureType.pathway, 6);
         AddWeight(StructureType.hub, StructureType.end, 1);
@@ -25,5 +25,7 @@ public class DefaultStructureConfig : StructureConfig
         AddChildRange(StructureType.end, 0, 0);
         AddChildRange(StructureType.pathway, 2, 2);
         AddChildRange(StructureType.hub, 4, 4);
+
+        SetRoomLimit(25);
     }
 }

@@ -8,7 +8,8 @@ public class StageBuilder : MonoBehaviour
 {
     private HashSet<RoomPrefab> roomOptions;
 
-    private RoomNode rootRoom;
+    private StructureNode structureRoot;
+    private RoomNode roomRoot;
 
     private int roomCount = 0;
 
@@ -43,57 +44,78 @@ public class StageBuilder : MonoBehaviour
     private void GenerateStage()
     {
         ClearRooms();
-        StructureNode structure = GenerateStructure();
-        GenerateRooms(structure);
+        GenerateStructure();
+        GenerateRooms();
     }
     
-    private StructureNode GenerateStructure()
+    private void GenerateStructure()
     {
         Stack<StructureNode> dfsStack = new Stack<StructureNode>();
 
-        StructureNode parentNode = new StructureNode(StructureType.start, config);
+        StructureNode parentNode = new StructureNode(StructureType.start, config, null);
+        parentNode.SetChildCount();
         dfsStack.Push(parentNode);
+
+        int roomCount = parentNode.GetChildCount();
 
         while (dfsStack.Count > 0)
         {
             StructureNode currentNode = dfsStack.Pop();
 
-            IntRange childRange = config.GetChildRange(currentNode.GetStructureType());
-
-            int childCount = UnityEngine.Random.Range(childRange.GetMin(), childRange.GetMax());
+            int childCount = currentNode.GetChildCount();
 
             for (int i = 0; i < childCount; i++)
             {
-                StructureNode childNode = parentNode.GenerateChild();
+                StructureNode childNode;
+
+                if (roomCount < config.GetRoomLimit())
+                {
+                    childNode = parentNode.GenerateChild();
+                }
+                else
+                {
+                    childNode = new StructureNode(StructureType.end, config, currentNode);
+                }
+
                 parentNode.AddChild(childNode);
+                childNode.SetChildCount();
+                roomCount += childNode.GetChildCount();
+
                 dfsStack.Push(childNode);
             }
         }
 
-        return parentNode;
+        structureRoot = parentNode;
     }
 
-    private void GenerateRooms(StructureNode structure)
+    private void GenerateRooms()
     {
-        Stack<RoomNode> dfsStack = new Stack<RoomNode>();
+        Stack<StructureNode> dfsStack = new Stack<StructureNode>();
 
         roomCount = 0;
 
         // Place a starting room (any qualifying end room) at the center of the scene.
-        RoomPrefab rootRoomChoice = ChooseRoomByDoorCount(new HashSet<RoomPrefab>(), 1);
-        rootRoom = CreateRoom(rootRoomChoice);
+        RoomPrefab rootRoomChoice = ChooseRoom(new HashSet<RoomPrefab>(), 1, structureRoot);
+        roomRoot = CreateRoom(rootRoomChoice);
+        structureRoot.SetRoomNode(roomRoot);
 
-        dfsStack.Push(rootRoom);
+        dfsStack.Push(structureRoot);
 
         while (dfsStack.Count > 0)
         {
-            RoomNode currentRoom = dfsStack.Pop();
+            StructureNode currentNode = dfsStack.Pop();
+            RoomNode currentRoom = currentNode.GetRoomNode();
 
             // Go through each door of the parent node and create a room for it.
             int roomsPutOnStack = 0;
 
-            foreach (DoorEdge door in currentRoom.GetUnconnectedChildDoors())
+            List<StructureNode> nonInstantiatedChildren = currentNode.GetNonInstantiatedChildren();
+            List<DoorEdge> unconnectedChildDoors = currentRoom.GetUnconnectedChildDoors();
+
+            for (int i = 0; i < unconnectedChildDoors.Count; i++)
             {
+                DoorEdge door = unconnectedChildDoors[i];
+
                 RoomPrefab newRoomPrefab = null;
                 RoomNode newRoom = null;
                 RoomNode failedRoom = null;
@@ -101,7 +123,7 @@ public class StageBuilder : MonoBehaviour
 
                 while (roomsTried.Count < roomOptions.Count)
                 {
-                    newRoomPrefab = ChooseRoom(dfsStack.Count, roomsTried);
+                    newRoomPrefab = ChooseRoom(dfsStack.Count, roomsTried, nonInstantiatedChildren[i]);
 
                     if (newRoomPrefab == null)
                     {
@@ -129,12 +151,14 @@ public class StageBuilder : MonoBehaviour
                 // If no room will work for this door, we need to choose a new room higher up the stack
                 if (failedRoom != null || newRoom == null)
                 {
-                    for (int i = 0; i < roomsPutOnStack; i++)
+                    for (int j = 0; j < roomsPutOnStack; j++)
                     {
                         dfsStack.Pop();
                     }
 
-                    dfsStack.Push(currentRoom.GetParentRoom());
+                    currentNode.SetRoomNode(null);
+                    dfsStack.Push(currentNode.GetParent());
+
                     RoomPrefab currentRoomPrefab = ChooseRoomByName(currentRoom.GetRoomObject().name);
                     currentRoom.GetParentDoor().GetRoomsTried().Add(currentRoomPrefab);
                     currentRoom.DestroyRoom();
@@ -142,7 +166,8 @@ public class StageBuilder : MonoBehaviour
                 }
                 else
                 {
-                    dfsStack.Push(newRoom);
+                    currentNode.SetRoomNode(newRoom);
+                    dfsStack.Push(currentNode);
                     roomsPutOnStack++;
 
                     // Add door
@@ -151,7 +176,7 @@ public class StageBuilder : MonoBehaviour
                 }
             }
 
-            FillSlots(currentRoom);
+            FillSlots(currentRoom, currentNode);
         }
     }
 
@@ -184,14 +209,29 @@ public class StageBuilder : MonoBehaviour
         }
     }
 
-    private RoomPrefab ChooseRoom(int depth, HashSet<RoomPrefab> roomsTried)
+    private RoomPrefab ChooseRoom(int depth, HashSet<RoomPrefab> roomsTried, StructureNode structureNode)
     {
         if (depth >= 12)
         {
             return ChooseRoomByDoorCount(roomsTried, 1);
         }
 
-        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList();
+        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetPrefab().GetComponent<RoomConfig>().roomType == structureNode.GetRoomType());
+
+        if (validRooms.Count > 0)
+        {
+            RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
+            return chosenRoom;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private RoomPrefab ChooseRoom(HashSet<RoomPrefab> roomsTried, int doorCount, StructureNode structureNode)
+    {
+        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetDoorCount() == doorCount && x.GetPrefab().GetComponent<RoomConfig>().roomType == structureNode.GetRoomType());
 
         if (validRooms.Count > 0)
         {
@@ -212,7 +252,7 @@ public class StageBuilder : MonoBehaviour
         return new RoomNode(room);
     }
 
-    private void FillSlots(RoomNode room)
+    private void FillSlots(RoomNode room, StructureNode structureNode)
     {
         foreach (RoomSlot slot in room.GetSlots())
         {
