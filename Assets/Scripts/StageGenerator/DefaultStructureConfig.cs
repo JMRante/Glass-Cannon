@@ -6,14 +6,23 @@ public class DefaultStructureConfig : StructureConfig
 {
     public DefaultStructureConfig() : base()
     {
+        // AddWeight(StructureType.start, StructureType.pathway, 5);
+        // AddWeight(StructureType.start, StructureType.hub, 2);
+
+        // AddWeight(StructureType.pathway, StructureType.pathway, 5);
+        // AddWeight(StructureType.pathway, StructureType.end, 1);
+        // AddWeight(StructureType.pathway, StructureType.hub, 8);
+
+        // AddWeight(StructureType.hub, StructureType.pathway, 10);
+        // AddWeight(StructureType.hub, StructureType.end, 1);
         AddWeight(StructureType.start, StructureType.pathway, 5);
-        AddWeight(StructureType.start, StructureType.hub, 1);
+        AddWeight(StructureType.start, StructureType.hub, 2);
 
-        AddWeight(StructureType.pathway, StructureType.pathway, 2);
-        AddWeight(StructureType.pathway, StructureType.end, 10);
-        AddWeight(StructureType.pathway, StructureType.hub, 1);
+        AddWeight(StructureType.pathway, StructureType.pathway, 50);
+        AddWeight(StructureType.pathway, StructureType.end, 3);
+        AddWeight(StructureType.pathway, StructureType.hub, 80);
 
-        AddWeight(StructureType.hub, StructureType.pathway, 6);
+        AddWeight(StructureType.hub, StructureType.pathway, 30);
         AddWeight(StructureType.hub, StructureType.end, 1);
 
         AddRoomMapping(StructureType.start, RoomType.minorCap);

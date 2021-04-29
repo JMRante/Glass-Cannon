@@ -1,4 +1,4 @@
-using Tuple = System.Tuple;
+using String = System.String;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +41,7 @@ public class StageBuilder : MonoBehaviour
         }
     }
     
-    private void GenerateStage()
+    public void GenerateStage()
     {
         ClearRooms();
         GenerateStructure();
@@ -70,13 +70,14 @@ public class StageBuilder : MonoBehaviour
 
                 if (roomCount < config.GetRoomLimit())
                 {
-                    childNode = parentNode.GenerateChild();
+                    childNode = currentNode.GenerateChild();
                 }
                 else
                 {
                     childNode = new StructureNode(StructureType.end, config, currentNode);
                 }
 
+                Debug.Log(childNode.GetStructureType() + " of " + roomCount + "/" + config.GetRoomLimit());
                 currentNode.AddChild(childNode);
                 childNode.SetChildCount();
                 roomCount += childNode.GetChildCount();
@@ -101,8 +102,17 @@ public class StageBuilder : MonoBehaviour
 
         dfsStack.Push(structureRoot);
 
+        int iterationBreakCount = 0;
+
         while (dfsStack.Count > 0)
         {
+            iterationBreakCount += 1;
+
+            if (iterationBreakCount > 500)
+            {
+                break;
+            }
+
             StructureNode currentNode = dfsStack.Pop();
             RoomNode currentRoom = currentNode.GetRoomNode();
 
@@ -111,6 +121,7 @@ public class StageBuilder : MonoBehaviour
 
             List<StructureNode> nonInstantiatedChildren = currentNode.GetNonInstantiatedChildren();
             List<DoorEdge> unconnectedChildDoors = currentRoom.GetUnconnectedChildDoors();
+            // Debug.Log("Instantiating " + currentNode.GetStructureType() + " with children " + String.Join(", ", nonInstantiatedChildren) + " (" + nonInstantiatedChildren.Count + "/" + unconnectedChildDoors.Count + ")");
 
             for (int i = 0; i < unconnectedChildDoors.Count; i++)
             {
@@ -157,8 +168,7 @@ public class StageBuilder : MonoBehaviour
                         dfsStack.Pop();
                     }
 
-                    childStructureNode.SetRoomNode(null);
-                    currentNode.SetRoomNode(null);
+                    currentNode.SetRoomNodeNullRecursively();
                     dfsStack.Push(currentNode.GetParent());
 
                     RoomPrefab currentRoomPrefab = ChooseRoomByName(currentRoom.GetRoomObject().name);
@@ -173,7 +183,6 @@ public class StageBuilder : MonoBehaviour
                     roomsPutOnStack++;
 
                     // Add door
-                    //Quaternion.Euler(0f, door.GetParentDoorObject().transform.rotation.y + 90, 0f)
                     Instantiate(doorPrefab, door.GetParentDoorObject().transform.position, door.GetParentDoorObject().transform.rotation, newRoom.GetRoomObject().transform);
                 }
             }

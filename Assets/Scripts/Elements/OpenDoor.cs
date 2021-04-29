@@ -19,7 +19,6 @@ public class OpenDoor : MonoBehaviour
         StartCoroutine(WaitOpen());
     }
 
-
     IEnumerator WaitOpen()
     {
         doorCollider.enabled = false;

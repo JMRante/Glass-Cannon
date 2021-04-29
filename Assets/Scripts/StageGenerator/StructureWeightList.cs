@@ -21,6 +21,7 @@ public class StructureWeightList
     public StructureType GetStructureTypeByWeights()
     {
         int rand = Random.Range(0, weightSum);
+        // Debug.Log(rand + " in " + weightSum);
 
         return list.Find(x => x.IsValueInRange(rand)).GetStructureType();
     }

@@ -82,6 +82,12 @@ public class StructureNode
     {
         IntRange childRange = config.GetChildRange(structureType);
         this.childCount = Random.Range(childRange.GetMin(), childRange.GetMax());
+
+        // Cut off door representing parent
+        if (parent != null)
+        {
+            this.childCount -= 1; 
+        }
     }
 
     public int GetChildCount()
@@ -94,6 +100,16 @@ public class StructureNode
         this.parallelRoomNode = parallelRoomNode;
     }
 
+    public void SetRoomNodeNullRecursively()
+    {
+        this.parallelRoomNode = null;
+        
+        foreach (StructureNode node in children)
+        {
+            node.SetRoomNodeNullRecursively();
+        }
+    }
+
     public RoomNode GetRoomNode()
     {
         return parallelRoomNode;
@@ -102,5 +118,10 @@ public class StructureNode
     public StructureNode GetParent()
     {
         return parent;
+    }
+
+    public override string ToString()
+    {
+        return structureType.ToString();
     }
 }
