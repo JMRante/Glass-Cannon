@@ -619,4 +619,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f084519c226afae41a6404bb02af9052, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomType: 2
+  roomType: pathway

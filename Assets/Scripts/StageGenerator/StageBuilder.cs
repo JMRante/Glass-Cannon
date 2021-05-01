@@ -227,7 +227,7 @@ public class StageBuilder : MonoBehaviour
             return ChooseRoomByDoorCount(roomsTried, 1);
         }
 
-        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetPrefab().GetComponent<RoomConfig>().roomType == structureNode.GetRoomType());
+        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetPrefab().GetComponent<RoomConfig>().roomType.GetHashCode() == structureNode.GetRoomType().GetId());
 
         if (validRooms.Count > 0)
         {
@@ -242,7 +242,7 @@ public class StageBuilder : MonoBehaviour
 
     private RoomPrefab ChooseRoom(HashSet<RoomPrefab> roomsTried, int doorCount, StructureNode structureNode)
     {
-        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetDoorCount() == doorCount && x.GetPrefab().GetComponent<RoomConfig>().roomType == structureNode.GetRoomType());
+        List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetDoorCount() == doorCount && x.GetPrefab().GetComponent<RoomConfig>().roomType.GetHashCode() == structureNode.GetRoomType().GetId());
 
         if (validRooms.Count > 0)
         {

@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class RoomConfig : MonoBehaviour
 {
-    public RoomType roomType;
+    public string roomType;
 }
