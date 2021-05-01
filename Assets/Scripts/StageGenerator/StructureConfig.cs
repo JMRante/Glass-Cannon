@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class StructureConfig
 {
+    private List<RoomType> roomTypes;
+    private List<StructureType> structureTypes;
+
     private Dictionary<StructureType, StructureWeightList> weightConfig;
     private Dictionary<StructureType, RoomType> roomMappings;
     private Dictionary<StructureType, IntRange> childRange;
@@ -12,9 +15,39 @@ public class StructureConfig
 
     public StructureConfig()
     {
+        roomTypes = new List<RoomType>
+        {
+            new RoomType("minorCap"),
+            new RoomType("majorCap"),
+            new RoomType("pathway"),
+            new RoomType("gateway"),
+            new RoomType("hub"),
+            new RoomType("arena"),
+            new RoomType("meta"),
+            new RoomType("boss"),
+            new RoomType("bonus"),
+            new RoomType("deadEndCap"),
+        };
+        structureTypes = new List<StructureType>();
+
         weightConfig = new Dictionary<StructureType, StructureWeightList>();
         roomMappings = new Dictionary<StructureType, RoomType>();
         childRange = new Dictionary<StructureType, IntRange>();
+    }
+
+    public RoomType GetRoomType(string name)
+    {
+        return roomTypes.Find(x => x.GetName() == name);
+    }
+
+    public StructureType GetStructureType(string name)
+    {
+        return structureTypes.Find(x => x.GetName() == name);
+    }
+
+    public void AddStructureTypeDefinition(StructureType structureType)
+    {
+        structureTypes.Add(structureType);
     }
 
     public void AddWeight(StructureType structureType, StructureType childStructureType, int weight)

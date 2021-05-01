@@ -52,7 +52,7 @@ public class StageBuilder : MonoBehaviour
     {
         Stack<StructureNode> dfsStack = new Stack<StructureNode>();
 
-        StructureNode parentNode = new StructureNode(StructureType.start, config, null);
+        StructureNode parentNode = new StructureNode(config.GetStructureType("start"), config, null);
         parentNode.SetChildCount();
         dfsStack.Push(parentNode);
 
@@ -74,7 +74,7 @@ public class StageBuilder : MonoBehaviour
                 }
                 else
                 {
-                    childNode = new StructureNode(StructureType.end, config, currentNode);
+                    childNode = new StructureNode(config.GetStructureType("deadEnd"), config, currentNode);
                 }
 
                 Debug.Log(childNode.GetStructureType() + " of " + roomCount + "/" + config.GetRoomLimit());

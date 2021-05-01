@@ -2,28 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum RoomType
-{
-    minorCap,
-    majorCap,
-    pathway,
-    gateway,
-    hub,
-    arena,
-    meta,
-    boss,
-    bonus,
-    deadEndCap
-}
-
-public enum StructureType
-{
-    start,
-    end,
-    pathway,
-    hub
-}
-
 public class StructureNode
 {
     private StructureNode parent;

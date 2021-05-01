@@ -6,34 +6,33 @@ public class DefaultStructureConfig : StructureConfig
 {
     public DefaultStructureConfig() : base()
     {
-        // AddWeight(StructureType.start, StructureType.pathway, 5);
-        // AddWeight(StructureType.start, StructureType.hub, 2);
+        AddStructureTypeDefinition(new StructureType("start"));
+        AddStructureTypeDefinition(new StructureType("exit"));
+        AddStructureTypeDefinition(new StructureType("pathway"));
+        AddStructureTypeDefinition(new StructureType("hub"));
+        AddStructureTypeDefinition(new StructureType("deadEnd"));
 
-        // AddWeight(StructureType.pathway, StructureType.pathway, 5);
-        // AddWeight(StructureType.pathway, StructureType.end, 1);
-        // AddWeight(StructureType.pathway, StructureType.hub, 8);
+        AddWeight(GetStructureType("start"), GetStructureType("pathway"), 5);
+        AddWeight(GetStructureType("start"), GetStructureType("hub"), 2);
 
-        // AddWeight(StructureType.hub, StructureType.pathway, 10);
-        // AddWeight(StructureType.hub, StructureType.end, 1);
-        AddWeight(StructureType.start, StructureType.pathway, 5);
-        AddWeight(StructureType.start, StructureType.hub, 2);
+        AddWeight(GetStructureType("pathway"), GetStructureType("pathway"), 5);
+        AddWeight(GetStructureType("pathway"), GetStructureType("deadEnd"), 3);
+        AddWeight(GetStructureType("pathway"), GetStructureType("hub"), 8);
 
-        AddWeight(StructureType.pathway, StructureType.pathway, 50);
-        AddWeight(StructureType.pathway, StructureType.end, 3);
-        AddWeight(StructureType.pathway, StructureType.hub, 80);
+        AddWeight(GetStructureType("hub"), GetStructureType("pathway"), 10);
+        AddWeight(GetStructureType("hub"), GetStructureType("deadEnd"), 3);
 
-        AddWeight(StructureType.hub, StructureType.pathway, 30);
-        AddWeight(StructureType.hub, StructureType.end, 1);
+        AddRoomMapping(GetStructureType("start"), GetRoomType("minorCap"));
+        AddRoomMapping(GetStructureType("exit"), GetRoomType("minorCap"));
+        AddRoomMapping(GetStructureType("pathway"), GetRoomType("pathway"));
+        AddRoomMapping(GetStructureType("hub"), GetRoomType("hub"));
+        AddRoomMapping(GetStructureType("deadEnd"), GetRoomType("minorCap"));
 
-        AddRoomMapping(StructureType.start, RoomType.minorCap);
-        AddRoomMapping(StructureType.end, RoomType.minorCap);
-        AddRoomMapping(StructureType.pathway, RoomType.pathway);
-        AddRoomMapping(StructureType.hub, RoomType.hub);
-
-        AddChildRange(StructureType.start, 1, 1);
-        AddChildRange(StructureType.end, 0, 0);
-        AddChildRange(StructureType.pathway, 2, 2);
-        AddChildRange(StructureType.hub, 4, 4);
+        AddChildRange(GetStructureType("start"), 1, 1);
+        AddChildRange(GetStructureType("exit"), 0, 0);
+        AddChildRange(GetStructureType("pathway"), 2, 2);
+        AddChildRange(GetStructureType("hub"), 4, 4);
+        AddChildRange(GetStructureType("deadEnd"), 0, 0);
 
         SetRoomLimit(25);
     }
