@@ -28,11 +28,11 @@ public class DefaultStructureConfig : StructureConfig
         AddRoomMapping(GetStructureType("hub"), GetRoomType("hub"));
         AddRoomMapping(GetStructureType("deadEnd"), GetRoomType("minorCap"));
 
-        AddChildRange(GetStructureType("start"), 1, 1);
-        AddChildRange(GetStructureType("exit"), 0, 0);
-        AddChildRange(GetStructureType("pathway"), 2, 2);
-        AddChildRange(GetStructureType("hub"), 4, 4);
-        AddChildRange(GetStructureType("deadEnd"), 0, 0);
+        AddDoorRange(GetStructureType("start"), 1, 1);
+        AddDoorRange(GetStructureType("exit"), 1, 1);
+        AddDoorRange(GetStructureType("pathway"), 2, 2);
+        AddDoorRange(GetStructureType("hub"), 4, 4);
+        AddDoorRange(GetStructureType("deadEnd"), 1, 1);
 
         SetRoomLimit(25);
     }

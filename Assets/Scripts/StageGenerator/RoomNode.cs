@@ -21,7 +21,7 @@ public class RoomNode
         AddSlots();
     }
 
-    public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode)
+    public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode, RoomPrefab prefab, StructureNode structureNode)
     {
         List<DoorEdge> theirConnectingDoorOptions = roomNode.childDoors;
 
@@ -34,13 +34,18 @@ public class RoomNode
             AdjustRoomToConnectDoors(door);
 
             // If adjusted room does not fit, reject it, undo its promotion, and try another
-            if (!DoesRoomFit(roomNode))
+            if (structureNode.HasRoomBeenTried(prefab, door.GetChildRoom().GetRoomObject().transform) || !DoesRoomFit(roomNode))
             {
+                structureNode.AddRoomAsTried(prefab, door.GetChildRoom().GetRoomObject().transform);
+
                 door.DisconnectChildRoom();
+
                 continue;
             }
             else
             {
+                structureNode.AddRoomAsTried(prefab, door.GetChildRoom().GetRoomObject().transform);
+
                 // Promote child door of ours to parent door of theirs
                 roomNode.parentRoom = this;
                 roomNode.parentDoor = door;

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class StructureNode
@@ -12,8 +13,11 @@ public class StructureNode
     private StructureConfig config;
 
     private RoomNode parallelRoomNode;
+    public HashSet<RoomTry> triedRooms;
+    private HashSet<RoomPrefab> allRoomOptions;
+    private HashSet<RoomPrefab> roomOptions;
 
-    public StructureNode(StructureType structureType, StructureConfig config, StructureNode parent)
+    public StructureNode(StructureType structureType, StructureConfig config, StructureNode parent, HashSet<RoomPrefab> allRoomOptions)
     {
         this.structureType = structureType;
         this.config = config;
@@ -24,6 +28,9 @@ public class StructureNode
         children = new List<StructureNode>();
 
         parallelRoomNode = null;
+        triedRooms = new HashSet<RoomTry>();
+        this.allRoomOptions = allRoomOptions;
+        roomOptions = new HashSet<RoomPrefab>();
     }
 
     public StructureType GetStructureType()
@@ -38,7 +45,7 @@ public class StructureNode
 
     public StructureNode GenerateChild()
     {
-        return new StructureNode(config.GetStructureTypeByWeights(structureType), config, this);
+        return new StructureNode(config.GetStructureTypeByWeights(structureType), config, this, allRoomOptions);
     }
 
     public void AddChild(StructureNode childNode)
@@ -58,8 +65,12 @@ public class StructureNode
 
     public void SetChildCount()
     {
-        IntRange childRange = config.GetChildRange(structureType);
+        IntRange childRange = config.GetDoorRange(structureType);
         this.childCount = Random.Range(childRange.GetMin(), childRange.GetMax());
+
+        allRoomOptions.ToList()
+            .FindAll(x => x.GetDoorCount() == childCount && x.GetPrefab().GetComponent<RoomConfig>().roomType.GetHashCode() == GetRoomType().GetId())
+            .ForEach(x => roomOptions.Add(x));
 
         // Cut off door representing parent
         if (parent != null)
@@ -80,7 +91,8 @@ public class StructureNode
 
     public void SetRoomNodeNullRecursively()
     {
-        this.parallelRoomNode = null;
+        parallelRoomNode = null;
+        triedRooms = new HashSet<RoomTry>(); ;
         
         foreach (StructureNode node in children)
         {
@@ -101,5 +113,46 @@ public class StructureNode
     public override string ToString()
     {
         return structureType.ToString();
+    }
+
+    public void AddRoomAsTried(RoomPrefab roomPrefab, Transform roomTransform)
+    {
+        triedRooms.Add(new RoomTry(roomPrefab, roomTransform));
+        Debug.Log("Try " + roomPrefab.GetPrefab().name + " " + roomTransform.position + "/" + roomTransform.rotation);
+    }
+
+    public bool HasRoomBeenTried(RoomPrefab roomPrefab, Transform roomTransform)
+    {
+        return triedRooms.Contains(new RoomTry(roomPrefab, roomTransform));
+    }
+
+    public bool HasRoomBeenExhausted(RoomPrefab roomPrefab)
+    {
+        bool value = triedRooms.ToList().FindAll(x => x.GetRoomPrefab().Equals(roomPrefab)).Count == roomPrefab.GetDoorCount();
+        Debug.Log("HasRoomBeenExhausted" + value + " " + triedRooms.Count + " " + triedRooms.ToList().FindAll(x => x.GetRoomPrefab().Equals(roomPrefab)).Count + " " + roomPrefab.GetDoorCount());
+        return value;
+    }
+
+    public bool HaveAllRoomsBeenExhausted()
+    {
+        string list = "";
+        roomOptions.ToList().ForEach(x => list += x.GetPrefab().name + " ");
+        Debug.Log("Options for " + GetStructureType() + " remaining: " + list);
+        return !roomOptions.ToList().Exists(x => !HasRoomBeenExhausted(x));
+    }
+
+    public RoomPrefab ChooseRoom()
+    {
+        List<RoomPrefab> validRooms = roomOptions.ToList().FindAll(x => !HasRoomBeenExhausted(x));
+
+        if (validRooms.Count > 0)
+        {
+            RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
+            return chosenRoom;
+        }
+        else
+        {
+            return null;
+        }
     }
 }
