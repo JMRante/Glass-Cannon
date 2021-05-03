@@ -36,4 +36,9 @@ public class StructureWeightList
 
         return possibilities;
     }
+
+    public int GetCount()
+    {
+        return list.Count;
+    }
 }

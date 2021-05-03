@@ -79,6 +79,24 @@ public class StructureConfig
         }
     }
 
+    public List<string> GetStructureTypeOptionList(string structureType)
+    {
+        List<string> options = new List<string>();
+        int optionsFinalCount = weightConfig[structureType].GetCount();
+
+        while (options.Count < optionsFinalCount)
+        {
+            string drawOption = GetStructureTypeByWeights(structureType);
+
+            if (!options.Contains(drawOption))
+            {
+                options.Add(drawOption);
+            }
+        }
+
+        return options;
+    }
+
     public void AddRoomMapping(string structureType, string roomType)
     {
         roomMappings.Add(structureType, roomType);
@@ -97,6 +115,11 @@ public class StructureConfig
     public string GetCapStructureType()
     {
         return capRooms[Random.Range(0, capRooms.Count)];
+    }
+
+    public List<string> GetCapStructureTypeList()
+    {
+        return capRooms;
     }
 
     public void SetRoomLimit(int roomLimit)

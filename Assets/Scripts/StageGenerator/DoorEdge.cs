@@ -10,7 +10,7 @@ public class DoorEdge
     private GameObject childDoorObject;
     private RoomNode childRoom;
 
-    private HashSet<RoomPrefab> roomsTried;
+    private Queue<RoomChoice> roomOptionsLeft;
 
     public DoorEdge(GameObject parentDoorObject, RoomNode parentRoom)
     {
@@ -20,7 +20,7 @@ public class DoorEdge
         this.childDoorObject = null;
         this.childRoom = null;
 
-        roomsTried = new HashSet<RoomPrefab>();
+        roomOptionsLeft = null;
     }
 
     public void ConnectChildRoom(GameObject childDoorObject, RoomNode childRoom)
@@ -76,8 +76,13 @@ public class DoorEdge
         return parentDoorObject != null && parentRoom != null;
     }
 
-    public HashSet<RoomPrefab> GetRoomsTried()
+    public void SetRoomOptionsLeft(Queue<RoomChoice> roomOptionsLeft)
     {
-        return roomsTried;
+        this.roomOptionsLeft = roomOptionsLeft;
+    }
+
+    public Queue<RoomChoice> GetRoomsOptionsLeft()
+    {
+        return roomOptionsLeft;
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RoomOptions
@@ -7,6 +8,7 @@ public class RoomOptions
     private Dictionary<string, HashSet<RoomPrefab>> roomOptions;
     private Dictionary<string, int> structureOptionCounts;
     private int total;
+    private StructureConfig config;
 
     public RoomOptions(GameObject[] prefabs, StructureConfig config)
     {
@@ -14,6 +16,7 @@ public class RoomOptions
         GameObject[] prefabObjects = Resources.LoadAll<GameObject>("rooms");
 
         total = 0;
+        this.config = config;
 
         foreach (GameObject prefabObject in prefabObjects)
         {
@@ -71,6 +74,60 @@ public class RoomOptions
         }
 
         return null;
+    }
+
+    public RoomChoice GetRandomRoomOption(string structureType)
+    {
+        string roomType = config.GetRoomTypeByStructureType(structureType);
+        List<RoomPrefab> roomList = GetRoomOptions(roomType).ToList();
+
+        int randomPrefabIndex = Random.Range(0, roomList.Count);
+        RoomPrefab randomPrefab = roomList[randomPrefabIndex];
+        return new RoomChoice(structureType, randomPrefab);
+    }
+
+    public Queue<RoomChoice> GetRoomOptionQueue(string structureType)
+    {
+        List<string> structureOptionList = config.GetStructureTypeOptionList(structureType);
+        Queue<RoomChoice> roomOptionsList = new Queue<RoomChoice>();
+
+        foreach (string structureOption in structureOptionList)
+        {
+            string roomType = config.GetRoomTypeByStructureType(structureOption);
+            List<RoomPrefab> roomList = GetRoomOptions(roomType).ToList();
+
+            while (roomList.Count > 0)
+            {
+                int randomPrefabIndex = Random.Range(0, roomList.Count);
+                RoomPrefab randomPrefab = roomList[randomPrefabIndex];
+                roomOptionsList.Enqueue(new RoomChoice(structureOption, randomPrefab));
+                roomList.RemoveAt(randomPrefabIndex);
+            }
+        }
+
+        return roomOptionsList;
+    }
+
+    public Queue<RoomChoice> GetCapRoomOptionQueue()
+    {
+        List<string> structureOptionList = config.GetCapStructureTypeList();
+        Queue<RoomChoice> roomOptionsList = new Queue<RoomChoice>();
+
+        foreach (string structureOption in structureOptionList)
+        {
+            string roomType = config.GetRoomTypeByStructureType(structureOption);
+            List<RoomPrefab> roomList = GetRoomOptions(roomType).ToList();
+
+            while (roomList.Count > 0)
+            {
+                int randomPrefabIndex = Random.Range(0, roomList.Count);
+                RoomPrefab randomPrefab = roomList[randomPrefabIndex];
+                roomOptionsList.Enqueue(new RoomChoice(structureOption, randomPrefab));
+                roomList.RemoveAt(randomPrefabIndex);
+            }
+        }
+
+        return roomOptionsList;
     }
 
     public int GetRoomOptionCountByParentStructure(string structureType)

@@ -46,12 +46,12 @@ public class StageBuilder : MonoBehaviour
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
 
         roomCount = 0;
+        int iterations = 0;
 
         // Place a starting room (any qualifying end room) at the center of the scene.
         string rootStructureType = "start";
-        string rootRoomType = config.GetRoomTypeByStructureType(rootStructureType);
-        RoomPrefab rootRoomChoice = ChooseRoom(rootRoomType, new HashSet<RoomPrefab>());
-        rootRoom = CreateRoom(rootRoomChoice, rootStructureType);
+        RoomChoice rootRoomChoice = roomOptions.GetRandomRoomOption(rootStructureType);
+        rootRoom = CreateRoom(rootRoomChoice);
 
         dfsStack.Push(rootRoom);
 
@@ -62,67 +62,47 @@ public class StageBuilder : MonoBehaviour
             // Go through each door of the parent node and create a room for it.
             int roomsPutOnStack = 0;
 
+            iterations++; if (iterations > 4000) { Debug.Log("BROKE WHOOPSIE " + dfsStack.Count); return; }
+
             foreach (DoorEdge door in currentRoom.GetUnconnectedChildDoors())
             {
-                RoomPrefab newRoomPrefab = null;
+                RoomChoice newRoomChoice = null;
                 RoomNode newRoom = null;
                 RoomNode failedRoom = null;
-                HashSet<RoomPrefab> roomsTriedTotal = door.GetRoomsTried();
 
-                while (roomsTriedTotal.Count < roomOptions.GetRoomOptionCountByParentStructure(currentRoom.GetStructureType()))
+                Queue<RoomChoice> roomOptionsLeft;
+
+                if (roomCount <= config.GetRoomLimit())
                 {
-                    // Choose structure and room type and try to fit one. If none work, try another.
-                    string structureType;
+                    roomOptionsLeft = roomOptions.GetRoomOptionQueue(currentRoom.GetStructureType());
+                }
+                else
+                {
+                    roomOptionsLeft = roomOptions.GetCapRoomOptionQueue();
+                }
 
-                    if (roomCount > config.GetRoomLimit())
+                door.SetRoomOptionsLeft(roomOptionsLeft);
+
+                while (roomOptionsLeft.Count > 0)
+                {
+                    newRoomChoice = roomOptionsLeft.Dequeue();
+
+                    newRoom = CreateRoom(newRoomChoice);
+                    failedRoom = currentRoom.ConnectRoom(door, newRoom);
+
+                    // Unable to fit new room by any of its doors
+                    if (failedRoom != null)
                     {
-                        structureType = config.GetCapStructureType();
+                        failedRoom.DestroyRoom();
                     }
                     else
-                    {
-                        structureType = config.GetStructureTypeByWeights(currentRoom.GetStructureType());
-                    }
-
-                    string roomType = config.GetRoomTypeByStructureType(structureType);
-
-                    HashSet<RoomPrefab> roomsTriedForType = new HashSet<RoomPrefab>(door.GetRoomsTried().Intersect(roomOptions.GetRoomOptions(roomType)));
-
-                    while (roomsTriedForType.Count < roomOptions.GetRoomOptions(roomType).Count)
-                    {
-                        newRoomPrefab = ChooseRoom(roomType, roomsTriedForType);
-
-                        if (newRoomPrefab == null)
-                        {
-                            newRoom = null;
-                            break;
-                        }
-                        else
-                        {
-                            newRoom = CreateRoom(newRoomPrefab, structureType);
-                            failedRoom = currentRoom.ConnectRoom(door, newRoom);
-
-                            // Unable to fit new room by any of its doors
-                            if (failedRoom != null)
-                            {
-                                roomsTriedForType.Add(newRoomPrefab);
-                                roomsTriedTotal.Add(newRoomPrefab);
-                                failedRoom.DestroyRoom();
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-
-                    if (newRoom != null && failedRoom == null)
                     {
                         break;
                     }
                 }
 
                 // If no room will work for this door, we need to choose a new room higher up the stack
-                if (failedRoom != null || newRoom == null)
+                if (failedRoom != null)
                 {
                     for (int i = 0; i < roomsPutOnStack; i++)
                     {
@@ -130,7 +110,6 @@ public class StageBuilder : MonoBehaviour
                     }
 
                     dfsStack.Push(currentRoom.GetParentRoom());
-                    currentRoom.GetParentDoor().GetRoomsTried().Add(currentRoom.GetRoomPrefab());
                     currentRoom.DestroyRoom();
                     break;
                 }
@@ -172,12 +151,12 @@ public class StageBuilder : MonoBehaviour
         }
     }
 
-    private RoomNode CreateRoom(RoomPrefab roomPrefab, string structureType)
+    private RoomNode CreateRoom(RoomChoice roomChoice)
     {
-        GameObject room = Instantiate(roomPrefab.GetPrefab(), new Vector3(0, 0, 0), Quaternion.identity, transform);
+        GameObject room = Instantiate(roomChoice.GetRoomPrefab().GetPrefab(), new Vector3(0, 0, 0), Quaternion.identity, transform);
         room.name = room.name.Replace("(Clone)", "_" + roomCount);
         roomCount += 1;
-        return new RoomNode(room, roomPrefab, structureType);
+        return new RoomNode(room, roomChoice.GetRoomPrefab(), roomChoice.GetStructureType());
     }
 
     private void FillSlots(RoomNode room)

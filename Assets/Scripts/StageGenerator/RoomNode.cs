@@ -11,7 +11,6 @@ public class RoomNode
     private List<RoomSlot> slots;
 
     private RoomPrefab roomPrefab;
-    private string roomType;
     private string structureType;
 
     public RoomNode(GameObject roomObject, RoomPrefab roomPrefab, string structureType)
@@ -22,7 +21,6 @@ public class RoomNode
         childDoors = new List<DoorEdge>();
 
         this.roomPrefab = roomPrefab;
-        this.roomType = roomPrefab.GetRoomType();
         this.structureType = structureType;
 
         AddPrefabDoors();
@@ -195,7 +193,7 @@ public class RoomNode
 
     public string GetRoomType()
     {
-        return roomType;
+        return roomPrefab.GetRoomType();
     }
 
     public string GetStructureType()
