@@ -4,53 +4,55 @@ using UnityEngine;
 
 public class StructureConfig
 {
-    private List<RoomType> roomTypes;
-    private List<StructureType> structureTypes;
+    private List<string> roomTypes;
+    private List<string> structureTypes;
 
-    private Dictionary<StructureType, StructureWeightList> weightConfig;
-    private Dictionary<StructureType, RoomType> roomMappings;
-    private Dictionary<StructureType, IntRange> doorRange;
+    private Dictionary<string, StructureWeightList> weightConfig;
+    private Dictionary<string, string> roomMappings;
+
+    private List<string> capRooms;
 
     private int roomLimit = 2;
 
     public StructureConfig()
     {
-        roomTypes = new List<RoomType>
+        roomTypes = new List<string>
         {
-            new RoomType("minorCap"),
-            new RoomType("majorCap"),
-            new RoomType("pathway"),
-            new RoomType("gateway"),
-            new RoomType("hub"),
-            new RoomType("arena"),
-            new RoomType("meta"),
-            new RoomType("boss"),
-            new RoomType("bonus"),
-            new RoomType("deadEndCap"),
+            "minorCap",
+            "majorCap",
+            "pathway",
+            "gateway",
+            "hub",
+            "arena",
+            "meta",
+            "boss",
+            "bonus",
+            "deadEndCap"
         };
-        structureTypes = new List<StructureType>();
+        structureTypes = new List<string>();
 
-        weightConfig = new Dictionary<StructureType, StructureWeightList>();
-        roomMappings = new Dictionary<StructureType, RoomType>();
-        doorRange = new Dictionary<StructureType, IntRange>();
+        weightConfig = new Dictionary<string, StructureWeightList>();
+        roomMappings = new Dictionary<string, string>();
+
+        capRooms = new List<string>();
     }
 
-    public RoomType GetRoomType(string name)
+    public List<string> GetRoomTypes()
     {
-        return roomTypes.Find(x => x.GetName() == name);
+        return roomTypes;
     }
 
-    public StructureType GetStructureType(string name)
+    public List<string> GetStructureTypes()
     {
-        return structureTypes.Find(x => x.GetName() == name);
+        return structureTypes;
     }
 
-    public void AddStructureTypeDefinition(StructureType structureType)
+    public void AddStructureTypeDefinition(string structureType)
     {
         structureTypes.Add(structureType);
     }
 
-    public void AddWeight(StructureType structureType, StructureType childStructureType, int weight)
+    public void AddWeight(string structureType, string childStructureType, int weight)
     {
         if (!weightConfig.ContainsKey(structureType))
         {
@@ -60,29 +62,41 @@ public class StructureConfig
         weightConfig[structureType].AddWeight(childStructureType, weight);
     }
 
-    public StructureType GetStructureTypeByWeights(StructureType structureType)
+    public string GetStructureTypeByWeights(string structureType)
     {
         return weightConfig[structureType].GetStructureTypeByWeights();
     }
 
-    public void AddRoomMapping(StructureType structureType, RoomType roomType)
+    public List<string> GetStructurePossibilities(string structureType)
+    {
+        if (weightConfig.ContainsKey(structureType))
+        {
+            return weightConfig[structureType].GetPossibilities();
+        }
+        else
+        {
+            return new List<string>();
+        }
+    }
+
+    public void AddRoomMapping(string structureType, string roomType)
     {
         roomMappings.Add(structureType, roomType);
     }
 
-    public RoomType GetRoomTypeByStructureType(StructureType structureType)
+    public string GetRoomTypeByStructureType(string structureType)
     {
         return roomMappings[structureType];
     }
 
-    public void AddDoorRange(StructureType structureType, int minChildren, int maxChildren)
+    public void AddCapRoom(string structureType)
     {
-        this.doorRange.Add(structureType, new IntRange(minChildren, maxChildren));
+        capRooms.Add(structureType);
     }
 
-    public IntRange GetDoorRange(StructureType structureType)
+    public string GetCapStructureType()
     {
-        return doorRange[structureType];
+        return capRooms[Random.Range(0, capRooms.Count)];
     }
 
     public void SetRoomLimit(int roomLimit)

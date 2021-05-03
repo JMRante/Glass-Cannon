@@ -12,17 +12,28 @@ public class StructureWeightList
         list = new List<StructureWeight>();
     }
 
-    public void AddWeight(StructureType type, int weight)
+    public void AddWeight(string type, int weight)
     {
         list.Add(new StructureWeight(type, weight, weightSum)); 
         weightSum += weight;   
     }
 
-    public StructureType GetStructureTypeByWeights()
+    public string GetStructureTypeByWeights()
     {
         int rand = Random.Range(0, weightSum);
-        // Debug.Log(rand + " in " + weightSum);
 
         return list.Find(x => x.IsValueInRange(rand)).GetStructureType();
+    }
+
+    public List<string> GetPossibilities()
+    {
+        List<string> possibilities = new List<string>();
+
+        foreach (StructureWeight sw in list)
+        {
+            possibilities.Add(sw.GetStructureType());
+        }
+
+        return possibilities;
     }
 }

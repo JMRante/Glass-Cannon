@@ -1,4 +1,3 @@
-using String = System.String;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,10 +5,9 @@ using UnityEngine;
 
 public class StageBuilder : MonoBehaviour
 {
-    private HashSet<RoomPrefab> roomOptions;
+    private RoomOptions roomOptions;
 
-    private StructureNode structureRoot;
-    private RoomNode roomRoot;
+    private RoomNode rootRoom;
 
     private int roomCount = 0;
 
@@ -19,16 +17,12 @@ public class StageBuilder : MonoBehaviour
 
     void Start()
     {
-        GameObject[] roomPrefabs = Resources.LoadAll<GameObject>("rooms");
-
-        roomOptions = new HashSet<RoomPrefab>();
-
-        foreach (GameObject roomPrefab in roomPrefabs)
-            roomOptions.Add(new RoomPrefab(roomPrefab));
-
-        doorPrefab = Resources.Load<GameObject>("Elements/test_door");
-
         config = new DefaultStructureConfig();
+
+        GameObject[] roomPrefabs = Resources.LoadAll<GameObject>("rooms");
+        roomOptions = new RoomOptions(roomPrefabs, config);
+        
+        doorPrefab = Resources.Load<GameObject>("Elements/test_door");
 
         GenerateStage();
     }
@@ -37,157 +31,112 @@ public class StageBuilder : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.G))
         {
-            GenerateStage();
+            Generate();
         }
     }
-    
-    public void GenerateStage()
+
+    public void Generate()
     {
         ClearRooms();
-        GenerateStructure();
-        GenerateRooms();
-    }
-    
-    private void GenerateStructure()
-    {
-        Stack<StructureNode> dfsStack = new Stack<StructureNode>();
-
-        StructureNode parentNode = new StructureNode(config.GetStructureType("start"), config, null, roomOptions);
-        parentNode.SetChildCount();
-        dfsStack.Push(parentNode);
-
-        int roomCount = parentNode.GetChildCount();
-
-        while (dfsStack.Count > 0)
-        {
-            StructureNode currentNode = dfsStack.Pop();
-
-            int childCount = currentNode.GetChildCount();
-
-            for (int i = 0; i < childCount; i++)
-            {
-                StructureNode childNode;
-
-                if (roomCount < config.GetRoomLimit())
-                {
-                    childNode = currentNode.GenerateChild();
-                }
-                else
-                {
-                    childNode = new StructureNode(config.GetStructureType("deadEnd"), config, currentNode, roomOptions);
-                }
-
-                // Debug.Log(childNode.GetStructureType() + " of " + roomCount + "/" + config.GetRoomLimit());
-                currentNode.AddChild(childNode);
-                childNode.SetChildCount();
-                roomCount += childNode.GetChildCount();
-
-                dfsStack.Push(childNode);
-            }
-        }
-
-        structureRoot = parentNode;
+        GenerateStage();
     }
 
-    private void GenerateRooms()
+    private void GenerateStage()
     {
-        Stack<StructureNode> dfsStack = new Stack<StructureNode>();
+        Stack<RoomNode> dfsStack = new Stack<RoomNode>();
 
         roomCount = 0;
 
         // Place a starting room (any qualifying end room) at the center of the scene.
-        RoomPrefab rootRoomChoice = structureRoot.ChooseRoom();
-        roomRoot = CreateRoom(rootRoomChoice);
-        structureRoot.SetRoomNode(roomRoot);
+        string rootStructureType = "start";
+        string rootRoomType = config.GetRoomTypeByStructureType(rootStructureType);
+        RoomPrefab rootRoomChoice = ChooseRoom(rootRoomType, new HashSet<RoomPrefab>());
+        rootRoom = CreateRoom(rootRoomChoice, rootStructureType);
 
-        dfsStack.Push(structureRoot);
-
-        int iterationBreakCount = 0;
-        int iterationBreakCountB = 0;
+        dfsStack.Push(rootRoom);
 
         while (dfsStack.Count > 0)
         {
-            iterationBreakCount += 1;
-
-            if (iterationBreakCount > 500)
-            {
-                break;
-            }
-
-            StructureNode currentNode = dfsStack.Pop();
-            RoomNode currentRoom = currentNode.GetRoomNode();
+            RoomNode currentRoom = dfsStack.Pop();
 
             // Go through each door of the parent node and create a room for it.
             int roomsPutOnStack = 0;
 
-            List<StructureNode> nonInstantiatedChildren = currentNode.GetNonInstantiatedChildren();
-            List<DoorEdge> unconnectedChildDoors = currentRoom.GetUnconnectedChildDoors();
-            // Debug.Log("Instantiating " + currentNode.GetStructureType() + " with children " + String.Join(", ", nonInstantiatedChildren) + " (" + nonInstantiatedChildren.Count + "/" + unconnectedChildDoors.Count + ")");
-
-            for (int i = 0; i < unconnectedChildDoors.Count; i++)
+            foreach (DoorEdge door in currentRoom.GetUnconnectedChildDoors())
             {
-                DoorEdge door = unconnectedChildDoors[i];
-                StructureNode childStructureNode = nonInstantiatedChildren[i];
-
                 RoomPrefab newRoomPrefab = null;
                 RoomNode newRoom = null;
                 RoomNode failedRoom = null;
+                HashSet<RoomPrefab> roomsTriedTotal = door.GetRoomsTried();
 
-                while (!childStructureNode.HaveAllRoomsBeenExhausted())
+                while (roomsTriedTotal.Count < roomOptions.GetRoomOptionCountByParentStructure(currentRoom.GetStructureType()))
                 {
-                    iterationBreakCountB += 1;
+                    // Choose structure and room type and try to fit one. If none work, try another.
+                    string structureType;
 
-                    if (iterationBreakCountB > 500)
+                    if (roomCount > config.GetRoomLimit())
                     {
-                        break;
-                    }
-
-                    newRoomPrefab = childStructureNode.ChooseRoom();
-
-                    if (newRoomPrefab == null)
-                    {
-                        newRoom = null;
-                        break;
+                        structureType = config.GetCapStructureType();
                     }
                     else
                     {
-                        newRoom = CreateRoom(newRoomPrefab);
-                        failedRoom = currentRoom.ConnectRoom(door, newRoom, newRoomPrefab, childStructureNode);
+                        structureType = config.GetStructureTypeByWeights(currentRoom.GetStructureType());
+                    }
 
-                        // Unable to fit new room by any of its doors
-                        if (failedRoom != null)
+                    string roomType = config.GetRoomTypeByStructureType(structureType);
+
+                    HashSet<RoomPrefab> roomsTriedForType = new HashSet<RoomPrefab>(door.GetRoomsTried().Intersect(roomOptions.GetRoomOptions(roomType)));
+
+                    while (roomsTriedForType.Count < roomOptions.GetRoomOptions(roomType).Count)
+                    {
+                        newRoomPrefab = ChooseRoom(roomType, roomsTriedForType);
+
+                        if (newRoomPrefab == null)
                         {
-                            // roomsTried.Add(newRoomPrefab);
-                            failedRoom.DestroyRoom();
+                            newRoom = null;
+                            break;
                         }
                         else
                         {
-                            break;
+                            newRoom = CreateRoom(newRoomPrefab, structureType);
+                            failedRoom = currentRoom.ConnectRoom(door, newRoom);
+
+                            // Unable to fit new room by any of its doors
+                            if (failedRoom != null)
+                            {
+                                roomsTriedForType.Add(newRoomPrefab);
+                                roomsTriedTotal.Add(newRoomPrefab);
+                                failedRoom.DestroyRoom();
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
+                    }
+
+                    if (newRoom != null && failedRoom == null)
+                    {
+                        break;
                     }
                 }
 
                 // If no room will work for this door, we need to choose a new room higher up the stack
                 if (failedRoom != null || newRoom == null)
                 {
-                    for (int j = 0; j < roomsPutOnStack; j++)
+                    for (int i = 0; i < roomsPutOnStack; i++)
                     {
                         dfsStack.Pop();
                     }
 
-                    Debug.Log("Tried " + childStructureNode.triedRooms.Count + " options, will back out " + currentNode + " to " + currentNode.GetParent());
-                    currentNode.SetRoomNodeNullRecursively();
-                    dfsStack.Push(currentNode.GetParent());
-
-                    RoomPrefab currentRoomPrefab = ChooseRoomByName(currentRoom.GetRoomObject().name);
-                    // currentRoom.GetParentDoor().GetRoomsTried().Add(currentRoomPrefab);
+                    dfsStack.Push(currentRoom.GetParentRoom());
+                    currentRoom.GetParentDoor().GetRoomsTried().Add(currentRoom.GetRoomPrefab());
                     currentRoom.DestroyRoom();
                     break;
                 }
                 else
                 {
-                    childStructureNode.SetRoomNode(newRoom);
-                    dfsStack.Push(childStructureNode);
+                    dfsStack.Push(newRoom);
                     roomsPutOnStack++;
 
                     // Add door
@@ -195,7 +144,7 @@ public class StageBuilder : MonoBehaviour
                 }
             }
 
-            FillSlots(currentRoom, currentNode);
+            FillSlots(currentRoom);
         }
     }
 
@@ -208,50 +157,30 @@ public class StageBuilder : MonoBehaviour
         }
     }
 
-    private RoomPrefab ChooseRoomByName(string roomName)
+    private RoomPrefab ChooseRoom(string roomType, HashSet<RoomPrefab> roomsTried)
     {
-        return roomOptions.ToList().Find(x => x.ToString() == roomName);
+        List<RoomPrefab> validRooms = roomOptions.GetRoomOptions(roomType).Except(roomsTried).ToList();
+
+        if (validRooms.Count > 0)
+        {
+            RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
+            return chosenRoom;
+        }
+        else
+        {
+            return null;
+        }
     }
 
-    // private RoomPrefab ChooseRoomByDoorCount(StructureNode structureNode, int doorCount)
-    // {
-    //     List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetDoorCount() == doorCount);
-
-    //     if (validRooms.Count > 0)
-    //     {
-    //         RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
-    //         return chosenRoom;
-    //     }
-    //     else
-    //     {
-    //         return null;
-    //     }
-    // }
-
-    // private RoomPrefab ChooseRoom(StructureNode structureNode, int doorCount)
-    // {
-    //     List<RoomPrefab> validRooms = roomOptions.Except(roomsTried).ToList().FindAll(x => x.GetDoorCount() == doorCount && x.GetPrefab().GetComponent<RoomConfig>().roomType.GetHashCode() == structureNode.GetRoomType().GetId());
-
-    //     if (validRooms.Count > 0)
-    //     {
-    //         RoomPrefab chosenRoom = validRooms[Random.Range(0, validRooms.Count)];
-    //         return chosenRoom;
-    //     }
-    //     else
-    //     {
-    //         return null;
-    //     }
-    // }
-
-    private RoomNode CreateRoom(RoomPrefab roomPrefab)
+    private RoomNode CreateRoom(RoomPrefab roomPrefab, string structureType)
     {
         GameObject room = Instantiate(roomPrefab.GetPrefab(), new Vector3(0, 0, 0), Quaternion.identity, transform);
         room.name = room.name.Replace("(Clone)", "_" + roomCount);
         roomCount += 1;
-        return new RoomNode(room);
+        return new RoomNode(room, roomPrefab, structureType);
     }
 
-    private void FillSlots(RoomNode room, StructureNode structureNode)
+    private void FillSlots(RoomNode room)
     {
         foreach (RoomSlot slot in room.GetSlots())
         {

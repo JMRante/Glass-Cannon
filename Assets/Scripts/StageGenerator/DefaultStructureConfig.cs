@@ -6,33 +6,29 @@ public class DefaultStructureConfig : StructureConfig
 {
     public DefaultStructureConfig() : base()
     {
-        AddStructureTypeDefinition(new StructureType("start"));
-        AddStructureTypeDefinition(new StructureType("exit"));
-        AddStructureTypeDefinition(new StructureType("pathway"));
-        AddStructureTypeDefinition(new StructureType("hub"));
-        AddStructureTypeDefinition(new StructureType("deadEnd"));
+        AddStructureTypeDefinition("start");
+        AddStructureTypeDefinition("exit");
+        AddStructureTypeDefinition("pathway");
+        AddStructureTypeDefinition("hub");
+        AddStructureTypeDefinition("deadEnd");
 
-        AddWeight(GetStructureType("start"), GetStructureType("pathway"), 5);
-        AddWeight(GetStructureType("start"), GetStructureType("hub"), 2);
+        AddWeight("start", "pathway", 5);
+        AddWeight("start", "hub", 2);
 
-        AddWeight(GetStructureType("pathway"), GetStructureType("pathway"), 5);
-        AddWeight(GetStructureType("pathway"), GetStructureType("deadEnd"), 3);
-        AddWeight(GetStructureType("pathway"), GetStructureType("hub"), 8);
+        AddWeight("pathway", "pathway", 5);
+        AddWeight("pathway", "deadEnd", 3);
+        AddWeight("pathway", "hub", 8);
 
-        AddWeight(GetStructureType("hub"), GetStructureType("pathway"), 10);
-        AddWeight(GetStructureType("hub"), GetStructureType("deadEnd"), 3);
+        AddWeight("hub", "pathway", 10);
+        AddWeight("hub", "deadEnd", 3);
 
-        AddRoomMapping(GetStructureType("start"), GetRoomType("minorCap"));
-        AddRoomMapping(GetStructureType("exit"), GetRoomType("minorCap"));
-        AddRoomMapping(GetStructureType("pathway"), GetRoomType("pathway"));
-        AddRoomMapping(GetStructureType("hub"), GetRoomType("hub"));
-        AddRoomMapping(GetStructureType("deadEnd"), GetRoomType("minorCap"));
+        AddRoomMapping("start", "minorCap");
+        AddRoomMapping("exit", "minorCap");
+        AddRoomMapping("pathway", "pathway");
+        AddRoomMapping("hub", "hub");
+        AddRoomMapping("deadEnd", "minorCap");
 
-        AddDoorRange(GetStructureType("start"), 1, 1);
-        AddDoorRange(GetStructureType("exit"), 1, 1);
-        AddDoorRange(GetStructureType("pathway"), 2, 2);
-        AddDoorRange(GetStructureType("hub"), 4, 4);
-        AddDoorRange(GetStructureType("deadEnd"), 1, 1);
+        AddCapRoom("deadEnd");
 
         SetRoomLimit(25);
     }

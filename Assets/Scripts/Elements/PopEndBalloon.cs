@@ -21,6 +21,6 @@ public class PopEndBalloon : MonoBehaviour
     IEnumerator WaitThenGenerate()
     {
         yield return new WaitForSeconds(waitTime);
-        stageBuilder.GenerateStage();
+        stageBuilder.Generate();
     }
 }

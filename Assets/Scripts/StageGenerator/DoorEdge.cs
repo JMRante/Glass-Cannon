@@ -10,6 +10,8 @@ public class DoorEdge
     private GameObject childDoorObject;
     private RoomNode childRoom;
 
+    private HashSet<RoomPrefab> roomsTried;
+
     public DoorEdge(GameObject parentDoorObject, RoomNode parentRoom)
     {
         this.parentDoorObject = parentDoorObject;
@@ -17,6 +19,8 @@ public class DoorEdge
 
         this.childDoorObject = null;
         this.childRoom = null;
+
+        roomsTried = new HashSet<RoomPrefab>();
     }
 
     public void ConnectChildRoom(GameObject childDoorObject, RoomNode childRoom)
@@ -70,5 +74,10 @@ public class DoorEdge
     public bool IsDoorValid()
     {
         return parentDoorObject != null && parentRoom != null;
+    }
+
+    public HashSet<RoomPrefab> GetRoomsTried()
+    {
+        return roomsTried;
     }
 }

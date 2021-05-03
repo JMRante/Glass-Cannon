@@ -10,18 +10,26 @@ public class RoomNode
     private List<DoorEdge> childDoors;
     private List<RoomSlot> slots;
 
-    public RoomNode(GameObject roomObject)
+    private RoomPrefab roomPrefab;
+    private string roomType;
+    private string structureType;
+
+    public RoomNode(GameObject roomObject, RoomPrefab roomPrefab, string structureType)
     {
         this.roomObject = roomObject;
         this.parentRoom = null;
 
         childDoors = new List<DoorEdge>();
 
+        this.roomPrefab = roomPrefab;
+        this.roomType = roomPrefab.GetRoomType();
+        this.structureType = structureType;
+
         AddPrefabDoors();
         AddSlots();
     }
 
-    public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode, RoomPrefab prefab, StructureNode structureNode)
+    public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode)
     {
         List<DoorEdge> theirConnectingDoorOptions = roomNode.childDoors;
 
@@ -34,18 +42,13 @@ public class RoomNode
             AdjustRoomToConnectDoors(door);
 
             // If adjusted room does not fit, reject it, undo its promotion, and try another
-            if (structureNode.HasRoomBeenTried(prefab, door.GetChildRoom().GetRoomObject().transform) || !DoesRoomFit(roomNode))
+            if (!DoesRoomFit(roomNode))
             {
-                structureNode.AddRoomAsTried(prefab, door.GetChildRoom().GetRoomObject().transform);
-
                 door.DisconnectChildRoom();
-
                 continue;
             }
             else
             {
-                structureNode.AddRoomAsTried(prefab, door.GetChildRoom().GetRoomObject().transform);
-
                 // Promote child door of ours to parent door of theirs
                 roomNode.parentRoom = this;
                 roomNode.parentDoor = door;
@@ -66,7 +69,7 @@ public class RoomNode
         // Get rotation from next door to previous door inverted and apply rotation to entire room.
         float steadyDoorZRotation = door.GetParentDoorObject().transform.eulerAngles.y;
         float transformingDoorZRotation = door.GetChildDoorObject().transform.eulerAngles.y;
-        
+
         float matchSteadyDoorZRotation = steadyDoorZRotation + 180f;
 
         float rotation = Mathf.DeltaAngle(transformingDoorZRotation, matchSteadyDoorZRotation);
@@ -143,7 +146,7 @@ public class RoomNode
             }
         }
     }
-    
+
     public List<RoomSlot> GetSlots()
     {
         return slots;
@@ -183,6 +186,21 @@ public class RoomNode
     public int GetDoorCount()
     {
         return childDoors.Count + (parentDoor != null ? 1 : 0);
+    }
+
+    public RoomPrefab GetRoomPrefab()
+    {
+        return roomPrefab;
+    }
+
+    public string GetRoomType()
+    {
+        return roomType;
+    }
+
+    public string GetStructureType()
+    {
+        return structureType;
     }
 
     public void DestroyRoom()

@@ -5,6 +5,7 @@ using UnityEngine;
 public class RoomPrefab
 {
     private GameObject prefab;
+    private string roomType;
     private int doorCount;
 
     public RoomPrefab(GameObject prefab)
@@ -19,11 +20,18 @@ public class RoomPrefab
                 doorCount += 1;
             }
         }
+
+        roomType = this.prefab.GetComponent<RoomConfig>().roomType;
     }
 
     public GameObject GetPrefab()
     {
         return prefab;
+    }
+
+    public string GetRoomType()
+    {
+        return roomType;
     }
 
     public int GetDoorCount()
