@@ -64,6 +64,9 @@ public class StageBuilder : MonoBehaviour
 
             iterations++; if (iterations > 4000) { Debug.Log("BROKE WHOOPSIE " + dfsStack.Count); return; }
 
+            List<DoorEdge> unconnectedChildDoors = currentRoom.GetUnconnectedChildDoors();
+            Utility.Shuffle(unconnectedChildDoors);
+
             foreach (DoorEdge door in currentRoom.GetUnconnectedChildDoors())
             {
                 RoomChoice newRoomChoice = null;

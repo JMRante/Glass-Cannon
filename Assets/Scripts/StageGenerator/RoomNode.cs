@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RoomNode
@@ -30,6 +31,7 @@ public class RoomNode
     public RoomNode ConnectRoom(DoorEdge door, RoomNode roomNode)
     {
         List<DoorEdge> theirConnectingDoorOptions = roomNode.childDoors;
+        Utility.Shuffle(theirConnectingDoorOptions);
 
         // Try each door on the room to connect to see if it will fit
         foreach (DoorEdge doorOption in theirConnectingDoorOptions)
