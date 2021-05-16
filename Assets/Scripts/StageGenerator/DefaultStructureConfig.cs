@@ -17,6 +17,7 @@ public class DefaultStructureConfig : StructureConfig
 
         AddWeight("pathway", "pathway", 5);
         AddWeight("pathway", "deadEnd", 3);
+        AddWeight("pathway", "exit", 3);
         AddWeight("pathway", "hub", 8);
 
         AddWeight("hub", "pathway", 10);

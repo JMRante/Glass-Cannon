@@ -8,14 +8,25 @@ public class PopEndBalloon : MonoBehaviour
 
     private StageBuilder stageBuilder;
 
+    public GameObject replacementPrefab;
+
+    private bool isShot;
+
     void Start()
     {
         stageBuilder = GameObject.Find("stage").GetComponent<StageBuilder>();
+        isShot = false;
     }
 
     public void OnShot()
     {
-        StartCoroutine(WaitThenGenerate());
+        if (!isShot)
+        {
+            isShot = true;
+            Instantiate(replacementPrefab, transform.position, transform.rotation);
+            gameObject.GetComponent<MeshRenderer>().enabled = false;
+            StartCoroutine(WaitThenGenerate());
+        }
     }
 
     IEnumerator WaitThenGenerate()

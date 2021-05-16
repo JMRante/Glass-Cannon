@@ -173,9 +173,14 @@ public class StageBuilder : MonoBehaviour
                 slottedPrefab = slot.slottedPrefabs.Find(x => x.name == "player");
             }
 
+            if (room.GetStructureType() == "exit")
+            {
+                slottedPrefab = slot.slottedPrefabs.Find(x => x.name == "balloon_end");
+            }
+
             if (slottedPrefab != null)
             {
-                GameObject slottedObject = Instantiate(slottedPrefab, slot.gameObject.transform.position, Quaternion.identity, transform);
+                GameObject slottedObject = Instantiate(slottedPrefab, slot.gameObject.transform.position, slottedPrefab.transform.rotation, transform);
                 slottedObject.name = slottedObject.name.Replace("(Clone)", "");
             }
         }

@@ -104,7 +104,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 3364547077343442492}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &4206592963941863155
 BoxCollider:
@@ -150,6 +150,7 @@ Transform:
   - {fileID: 923022264636057718}
   - {fileID: 4623673002089726018}
   - {fileID: 7844675369621260434}
+  - {fileID: 4329403531600975001}
   - {fileID: 7074049677220590011}
   - {fileID: 7765682634327639177}
   m_Father: {fileID: 0}
@@ -264,6 +265,51 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 7942985532195481788, guid: cc1392b64eb29fa42b8af16ebc4043d4, type: 3}
+--- !u!1 &5137081330144856635
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4329403531600975001}
+  - component: {fileID: 8439381219877055115}
+  m_Layer: 0
+  m_Name: slot_2
+  m_TagString: Slot
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4329403531600975001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5137081330144856635}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 5.413, z: -5.08}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 3364547077343442492}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8439381219877055115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5137081330144856635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 664f136bf733f9f47a17df76c141c724, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slottedPrefabs:
+  - {fileID: 7823174735232052887, guid: 65857586efa5658418519d93d5ff7eef, type: 3}
 --- !u!1 &6228851999682437580
 GameObject:
   m_ObjectHideFlags: 0
@@ -293,7 +339,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 3364547077343442492}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1786218497081476062
 BoxCollider:
