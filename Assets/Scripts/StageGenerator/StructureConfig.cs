@@ -12,6 +12,8 @@ public class StructureConfig
 
     private List<string> capRooms;
 
+    private List<string> syllabus;
+
     private int roomLimit = 2;
 
     public StructureConfig()
@@ -35,6 +37,8 @@ public class StructureConfig
         roomMappings = new Dictionary<string, string>();
 
         capRooms = new List<string>();
+
+        syllabus = new List<string>();
     }
 
     public List<string> GetRoomTypes()
@@ -120,6 +124,16 @@ public class StructureConfig
     public List<string> GetCapStructureTypeList()
     {
         return capRooms;
+    }
+
+    public void AddStructureTypeToSyllabus(string structureType)
+    {
+        syllabus.Add(structureType);
+    }
+
+    public List<string> GetSyllabus()
+    {
+        return syllabus;
     }
 
     public void SetRoomLimit(int roomLimit)

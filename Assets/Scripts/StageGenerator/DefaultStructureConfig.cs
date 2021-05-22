@@ -31,6 +31,11 @@ public class DefaultStructureConfig : StructureConfig
 
         AddCapRoom("deadEnd");
 
+        AddStructureTypeToSyllabus("pathway");
+        AddStructureTypeToSyllabus("hub");
+        AddStructureTypeToSyllabus("pathway");
+        AddStructureTypeToSyllabus("exit");
+
         SetRoomLimit(25);
     }
 }

@@ -9,7 +9,7 @@ public class StageBuilder : MonoBehaviour
 
     private RoomNode rootRoom;
 
-    private int roomCount = 0;
+    private List<RoomPrefab> roomsAdded;
 
     private GameObject doorPrefab;
 
@@ -38,15 +38,17 @@ public class StageBuilder : MonoBehaviour
     public void Generate()
     {
         ClearRooms();
+        roomOptions.Refresh();
         GenerateStage();
     }
 
     private void GenerateStage()
     {
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
-
-        roomCount = 0;
+        
+        roomsAdded = new List<RoomPrefab>();
         int iterations = 0;
+        int openDoorsLeft = 0;
 
         // Place a starting room (any qualifying end room) at the center of the scene.
         string rootStructureType = "start";
@@ -75,14 +77,7 @@ public class StageBuilder : MonoBehaviour
 
                 Queue<RoomChoice> roomOptionsLeft;
 
-                if (roomCount <= config.GetRoomLimit())
-                {
-                    roomOptionsLeft = roomOptions.GetRoomOptionQueue(currentRoom.GetStructureType());
-                }
-                else
-                {
-                    roomOptionsLeft = roomOptions.GetCapRoomOptionQueue();
-                }
+                roomOptionsLeft = roomOptions.GetRoomOptionQueue(currentRoom.GetStructureType(), roomsAdded, currentRoom.GetRoomPrefab(), openDoorsLeft);
 
                 door.SetRoomOptionsLeft(roomOptionsLeft);
 
@@ -96,7 +91,7 @@ public class StageBuilder : MonoBehaviour
                     // Unable to fit new room by any of its doors
                     if (failedRoom != null)
                     {
-                        failedRoom.DestroyRoom();
+                        failedRoom.DestroyRoom(roomsAdded);
                     }
                     else
                     {
@@ -109,17 +104,21 @@ public class StageBuilder : MonoBehaviour
                 {
                     for (int i = 0; i < roomsPutOnStack; i++)
                     {
-                        dfsStack.Pop();
+                        RoomNode poppedRoom = dfsStack.Pop();
+                        openDoorsLeft -= poppedRoom.GetDoorCount();
                     }
 
                     dfsStack.Push(currentRoom.GetParentRoom());
-                    currentRoom.DestroyRoom();
+                    openDoorsLeft += currentRoom.GetUnconnectedChildDoors().Count();
+                    currentRoom.DestroyRoom(roomsAdded);
                     break;
                 }
                 else
                 {
                     dfsStack.Push(newRoom);
                     roomsPutOnStack++;
+                    openDoorsLeft += newRoom.GetDoorCount();
+                    openDoorsLeft -= 1;
 
                     // Add door
                     Instantiate(doorPrefab, door.GetParentDoorObject().transform.position, door.GetParentDoorObject().transform.rotation, newRoom.GetRoomObject().transform);
@@ -157,8 +156,8 @@ public class StageBuilder : MonoBehaviour
     private RoomNode CreateRoom(RoomChoice roomChoice)
     {
         GameObject room = Instantiate(roomChoice.GetRoomPrefab().GetPrefab(), new Vector3(0, 0, 0), Quaternion.identity, transform);
-        room.name = room.name.Replace("(Clone)", "_" + roomCount);
-        roomCount += 1;
+        room.name = room.name.Replace("(Clone)", "_" + roomsAdded.FindAll(x => x.GetPrefab().name == roomChoice.GetRoomPrefab().GetPrefab().name).Count);
+        roomsAdded.Add(roomChoice.GetRoomPrefab());
         return new RoomNode(room, roomChoice.GetRoomPrefab(), roomChoice.GetStructureType());
     }
 

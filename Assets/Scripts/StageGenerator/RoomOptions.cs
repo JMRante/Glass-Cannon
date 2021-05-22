@@ -9,6 +9,7 @@ public class RoomOptions
     private Dictionary<string, int> structureOptionCounts;
     private int total;
     private StructureConfig config;
+    private Queue<string> syllabus;
 
     public RoomOptions(GameObject[] prefabs, StructureConfig config)
     {
@@ -48,6 +49,15 @@ public class RoomOptions
                 structureOptionCounts[structureType] += roomOptions[roomType].Count;
             }
         }
+
+        syllabus = new Queue<string>();
+        config.GetSyllabus().ForEach(x => syllabus.Enqueue(x));
+    }
+
+    public void Refresh()
+    {
+        syllabus = new Queue<string>();
+        config.GetSyllabus().ForEach(x => syllabus.Enqueue(x));
     }
 
     public HashSet<RoomPrefab> GetRoomOptions(string roomType)
@@ -86,10 +96,14 @@ public class RoomOptions
         return new RoomChoice(structureType, randomPrefab);
     }
 
-    public Queue<RoomChoice> GetRoomOptionQueue(string structureType)
+    public Queue<RoomChoice> GetRoomOptionQueue(string structureType, List<RoomPrefab> roomsAdded, RoomPrefab parentRoom, int openDoorsLeft)
     {
         List<string> structureOptionList = config.GetStructureTypeOptionList(structureType);
         Queue<RoomChoice> roomOptionsList = new Queue<RoomChoice>();
+
+        if (roomsAdded.Count <= config.GetRoomLimit())
+        {
+        }
 
         foreach (string structureOption in structureOptionList)
         {

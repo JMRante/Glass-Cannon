@@ -203,7 +203,7 @@ public class RoomNode
         return structureType;
     }
 
-    public void DestroyRoom()
+    public void DestroyRoom(List<RoomPrefab> roomsAdded)
     {
         Stack<RoomNode> dfsStack = new Stack<RoomNode>();
         dfsStack.Push(this);
@@ -227,6 +227,8 @@ public class RoomNode
 
             currentRoom.roomObject.SetActive(false);
             Object.Destroy(currentRoom.roomObject);
+
+            roomsAdded.RemoveAll(x => x.GetPrefab().name == currentRoom.GetRoomPrefab().GetPrefab().name);
         }
     }
 }
