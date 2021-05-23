@@ -48,7 +48,7 @@ public class StageBuilder : MonoBehaviour
         
         roomsAdded = new List<RoomPrefab>();
         int iterations = 0;
-        int openDoorsLeft = 0;
+        int openDoorsLeft = 1;
 
         // Place a starting room (any qualifying end room) at the center of the scene.
         string rootStructureType = "start";
@@ -117,7 +117,7 @@ public class StageBuilder : MonoBehaviour
                 {
                     dfsStack.Push(newRoom);
                     roomsPutOnStack++;
-                    openDoorsLeft += newRoom.GetDoorCount();
+                    openDoorsLeft += newRoom.GetDoorCount() - 1;
                     openDoorsLeft -= 1;
 
                     // Add door

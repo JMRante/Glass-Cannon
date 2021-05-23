@@ -228,7 +228,7 @@ public class RoomNode
             currentRoom.roomObject.SetActive(false);
             Object.Destroy(currentRoom.roomObject);
 
-            roomsAdded.RemoveAll(x => x.GetPrefab().name == currentRoom.GetRoomPrefab().GetPrefab().name);
+            roomsAdded.Remove(roomsAdded.Find(x => x.GetPrefab().name == currentRoom.GetRoomPrefab().GetPrefab().name));
         }
     }
 }

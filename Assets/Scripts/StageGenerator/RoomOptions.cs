@@ -98,12 +98,13 @@ public class RoomOptions
 
     public Queue<RoomChoice> GetRoomOptionQueue(string structureType, List<RoomPrefab> roomsAdded, RoomPrefab parentRoom, int openDoorsLeft)
     {
+        if (roomsAdded.Count > config.GetRoomLimit())
+        {
+            return GetCapRoomOptionQueue();
+        }
+
         List<string> structureOptionList = config.GetStructureTypeOptionList(structureType);
         Queue<RoomChoice> roomOptionsList = new Queue<RoomChoice>();
-
-        if (roomsAdded.Count <= config.GetRoomLimit())
-        {
-        }
 
         foreach (string structureOption in structureOptionList)
         {
